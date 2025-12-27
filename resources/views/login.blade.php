@@ -7,148 +7,100 @@
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            overflow: hidden;
-        }
-        
-        .login-image {
-            background-image: url('https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=2070&auto=format&fit=crop'); 
-            background-size: cover;
-            background-position: center;
-            height: 100vh;
-            position: relative;
-        }
-        
-        .login-image::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 100%);
-        }
-
-        .brand-text {
-            position: relative;
-            z-index: 2;
-            color: white;
-            top: 40%;
-            padding: 0 4rem;
-        }
-
-        .login-form-container {
-            height: 100vh;
+            background-color: #f4f7fe;
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #ffffff;
+            min-height: 100vh;
+            margin: 0;
         }
 
-        .login-wrapper {
+        .login-card {
+            background: #ffffff;
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(26, 35, 126, 0.1);
             width: 100%;
-            max-width: 420px;
-            padding: 20px;
+            max-width: 400px;
+            border-top: 5px solid #1A237E; /* Aksen warna biru utama */
         }
 
-        .form-control {
-            border-radius: 12px;
-            padding: 12px 15px;
-            background-color: #f8f9fa;
-            border: 2px solid transparent;
-            transition: all 0.3s ease;
+        .login-header h2 {
+            color: #1A237E;
+            font-weight: 700;
         }
 
         .form-control:focus {
-            background-color: #fff;
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+            border-color: #1A237E;
+            box-shadow: 0 0 0 3px rgba(26, 35, 126, 0.15);
         }
 
         .btn-primary-custom {
-            background: linear-gradient(90deg, #4f46e5 0%, #3b82f6 100%);
+            background-color: #1A237E;
             border: none;
-            border-radius: 12px;
-            padding: 14px;
+            border-radius: 10px;
+            padding: 12px;
             font-weight: 600;
-            letter-spacing: 0.5px;
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
         }
 
         .btn-primary-custom:hover {
+            background-color: #0d145a;
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 5px 15px rgba(26, 35, 126, 0.3);
+        }
+
+        .input-group-text {
+            background-color: transparent;
+            color: #1A237E;
+        }
+
+        .text-link {
+            color: #1A237E;
+            text-decoration: none;
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
 
-    <div class="container-fluid g-0">
-        <div class="row g-0">
-            
-            <div class="col-lg-7 d-none d-lg-block login-image">
-                <div class="brand-text">
-                    <h1 class="display-4 fw-bold mb-3">Focus on your<br>Goals.</h1>
-                    <p class="lead text-white-50">Manajemen tugas, ibadah, dan lifestyle mahasiswa rantau.</p>
+    <div class="login-card">
+        <div class="text-center mb-4">
+            <h2 class="mb-1">Selamat Datang</h2>
+            <p class="text-muted small">Silakan login untuk melanjutkan</p>
+        </div>
+
+        <form action="{{ route('login') }}" method="POST">
+            @csrf
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Email</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                    <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}" placeholder="" required>
+                </div>
+                @error('email') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label small fw-bold">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                    <input type="password" name="password" class="form-control" placeholder="" required>
                 </div>
             </div>
 
-            <div class="col-lg-5 login-form-container">
-                <div class="login-wrapper">
-                    
-                    <div class="text-center mb-5">
-                        <h2 class="fw-bold text-dark">Selamat Datang!</h2>
-                        <p class="text-muted">Silahkan Login...</p>
-                    </div>
+            <button type="submit" class="btn btn-primary-custom w-100 text-white mb-3">
+                MASUK SEKARANG
+            </button>
+        </form>
 
-                    <form action="{{ route('login') }}" method="POST">
-                        @csrf
-
-                        <div class="form-floating mb-3">
-                            <input type="email" 
-                                   class="form-control @error('email') is-invalid @enderror" 
-                                   id="email" 
-                                   name="email" 
-                                   value="{{ old('email') }}" 
-                                   placeholder="name@example.com" 
-                                   required>
-                            <label for="email"><i class="bi bi-envelope me-2"></i>Email </label>
-                            
-                            @error('email')
-                                <div class="invalid-feedback ps-2">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                        </div>
-
-                        <div class="form-floating mb-4">
-                            <input type="password" 
-                                   class="form-control" 
-                                   id="password" 
-                                   name="password" 
-                                   placeholder="Password" 
-                                   required>
-                            <label for="password"><i class="bi bi-lock me-2"></i>Password</label>
-                        </div>
-
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary-custom text-white">
-                                MASUK SEKARANG <i class="bi bi-arrow-right ms-2"></i>
-                            </button>
-                        </div>
-
-                    </form>
-
-                    <div class="text-center mt-5">
-                        <p class="small text-muted">Belum punya akun? <a href="{{ route('register') }}" class="text-primary fw-bold text-decoration-none">Daftar disini</a></p>
-                        <p class="small text-muted mt-4">&copy; 2025 Kelompok 9 WAD - Telkom University</p>
-                    </div>
-
-                </div>
-            </div>
-            
+        <div class="text-center">
+            <p class="small text-muted">Belum punya akun? <a href="{{ route('register') }}" class="text-link">Daftar disini</a></p>
         </div>
     </div>
 
