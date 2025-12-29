@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('meal', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->date('planned_date');
             $table->enum('meal_time', [
                 'Pagi',
@@ -22,6 +21,7 @@ return new class extends Migration
             ]);
             $table->string('recipe_name');
             $table->string('recipe_api_id')->nullable();
+            $table->text('notes')->nullable();
             $table->timestamps();
         });
     }
