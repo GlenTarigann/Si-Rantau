@@ -89,8 +89,12 @@ class AgendaOutdoorController extends Controller
     public function cetakPdf()
     {
         $agendas = AgendaOutdoor::orderBy('waktu_mulai', 'asc')->get();
+
         $pdf = Pdf::loadView('agenda.cetak_pdf', compact('agendas'));
-        return $pdf->stream('laporan_agenda_outdoor.pdf');
+        
+        $pdf->setPaper('a4', 'portrait');
+
+        return $pdf->stream('Itinerary_Kegiatan_Outdoor.pdf');
     }
 
     private function getCuacaBaruJson($kota, $waktuInput)
@@ -160,5 +164,10 @@ class AgendaOutdoorController extends Controller
             // Tampilkan error teknis jika ada crash kode
             return "Gangguan Sistem: " . $e->getMessage();
         }
+    }
+
+    public function show($id)
+    {
+        return redirect()->route('agenda.index');
     }
 }
