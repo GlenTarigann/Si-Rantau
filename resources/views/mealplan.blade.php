@@ -147,10 +147,10 @@
             <div class="collapse navbar-collapse">
                 <ul class="navbar-nav mx-auto">
                     <li class="nav-item"><a class="nav-link px-3" href="/">Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link px-3" href="#">Manajemen Tugas</a></li>
-                    <li class="nav-item"><a class="nav-link px-3" href="#">Agenda Outdoor</a></li>
+                    <li class="nav-item"><a class="nav-link px-3" href="tugas">Manajemen Tugas</a></li>
+                    <li class="nav-item"><a class="nav-link px-3" href="agenda">Agenda Outdoor</a></li>
                     <li class="nav-item"><a class="nav-link px-3 active" href="/meal-plan">Meal Plan</a></li>
-                    <li class="nav-item"><a class="nav-link px-3" href="#">Spiritual</a></li>
+                    <li class="nav-item"><a class="nav-link px-3" href="spiritual">Spiritual</a></li>
                 </ul>
                 <div class="ms-auto d-flex align-items-center">
                     <span class="fw-bold text-primary small"><i class="bi bi-person-circle me-1"></i> AMRIN</span>

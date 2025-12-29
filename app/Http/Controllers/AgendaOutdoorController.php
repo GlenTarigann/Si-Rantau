@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AgendaOutdoor;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http; // Wajib untuk akses API
+use Illuminate\Support\Facades\Http;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 

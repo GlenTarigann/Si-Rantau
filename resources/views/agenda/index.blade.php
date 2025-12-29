@@ -135,11 +135,11 @@
 
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav mx-auto" style="font-size: 0.8rem;">
-                    <li class="nav-item"><a class="nav-link px-2" href="#">Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link px-2" href="#">Manajemen Tugas</a></li>
+                    <li class="nav-item"><a class="nav-link px-2" href="dashboard">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link px-2" href="tugas">Manajemen Tugas</a></li>
                     <li class="nav-item"><a class="nav-link active px-2" href="{{ route('agenda.index') }}">Agenda Outdoor</a></li>
-                    <li class="nav-item"><a class="nav-link px-2" href="#">Meal Plan</a></li>
-                    <li class="nav-item"><a class="nav-link px-2" href="#">Spiritual</a></li>
+                    <li class="nav-item"><a class="nav-link px-2" href="meal-plan">Meal Plan</a></li>
+                    <li class="nav-item"><a class="nav-link px-2" href="spiritual">Spiritual</a></li>
                 </ul>
 
                 <ul class="navbar-nav ms-auto">
