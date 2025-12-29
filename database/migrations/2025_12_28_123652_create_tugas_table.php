@@ -13,11 +13,19 @@ return new class extends Migration
     {
         Schema::create('tugas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('title');
-            $table->dateTime('deadline')->nullable();
-            $table->enum('priority', ['High', 'Medium', 'Low']);
-            $table->boolean('is_completed')->default(false);
+            // $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->string('task_name');
+            $table->enum('task_category', [
+                'Akademik',
+                'Organisasi'
+            ]);
+            $table->dateTime('deadline');
+            $table->enum('progres_status', [
+                'Belum Selesai',
+                'Sedang Dikerjakan',
+                'Selesai'
+            ]);
+            $table->text('catatan')->nullable();
             $table->timestamps();
         });
     }

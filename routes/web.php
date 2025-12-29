@@ -1,12 +1,21 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TugasController;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\IbadahController; 
 
 Route::get('/', function () {
     return redirect()->route('spiritual.index');
 });
 
+Route::get('/', [TugasController::class, 'index'])->name('tugas.index');
+
+Route::get('/tugas/cetak', [TugasController::class, 'exportPdf'])->name('tugas.export');
+
+Route::resource('tugas', TugasController::class)->except(['show']);
+
+Route::get('tugas/export', [TugasController::class, 'exportPdf'])->name('tugas.export');
 Route::get('/spiritual', [IbadahController::class, 'index'])->name('spiritual.index');
 Route::prefix('spiritual')->name('spiritual.')->group(function () {
     
