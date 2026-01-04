@@ -15,33 +15,6 @@
             color: #333;
         }
 
-        .navbar {
-            background: white;
-            padding: 1rem 2rem;
-            border-bottom: 1px solid #edf2f9;
-        }
-
-        .nav-link {
-            color: #666 !important;
-            font-weight: 400;
-        }
-
-        .nav-link.active {
-            color: #1A237E !important;
-            font-weight: 600;
-            position: relative;
-        }
-
-        .nav-link.active::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: #1A237E;
-        }
-
         .card-main {
             border: none;
             border-radius: 20px;
@@ -141,23 +114,7 @@
 
 <body>
 
-    <nav class="navbar navbar-expand-lg sticky-top">
-        <div class="container-fluid">
-            <span class="navbar-brand fw-bold text-dark">Personal Assistant Mahasiswa Rantau</span>
-            <div class="collapse navbar-collapse">
-                <ul class="navbar-nav mx-auto">
-                    <li class="nav-item"><a class="nav-link px-3" href="/">Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link px-3" href="tugas">Manajemen Tugas</a></li>
-                    <li class="nav-item"><a class="nav-link px-3" href="agenda">Agenda Outdoor</a></li>
-                    <li class="nav-item"><a class="nav-link px-3 active" href="/meal-plan">Meal Plan</a></li>
-                    <li class="nav-item"><a class="nav-link px-3" href="spiritual">Spiritual</a></li>
-                </ul>
-                <div class="ms-auto d-flex align-items-center">
-                    <span class="fw-bold text-primary small"><i class="bi bi-person-circle me-1"></i> AMRIN</span>
-                </div>
-            </div>
-        </div>
-    </nav>
+    @include('layouts.navbar')
 
     <div class="container my-5">
         <h4 class="fw-bold mb-4 ms-2">Meal Plan</h4>
