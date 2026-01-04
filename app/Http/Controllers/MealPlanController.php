@@ -37,7 +37,7 @@ class MealPlanController extends Controller
             $recipes = [];
         }
 
-        return view('mealplan', compact('meals', 'recipes'));
+        return view('meal-plan.mealplan', compact('meals', 'recipes'));
     }
 
     public function store(Request $request)
@@ -71,7 +71,7 @@ class MealPlanController extends Controller
         $meal = \App\Models\Meal::findOrFail($id);
         $meal->update($request->all());
 
-        return redirect()->route('mealplan.index')->with('success', 'Meal Plan berhasil diperbarui!');
+        return redirect()->route('meal-plan.mealplan')->with('success', 'Meal Plan berhasil diperbarui!');
     }
 
     public function showRecipe($id)

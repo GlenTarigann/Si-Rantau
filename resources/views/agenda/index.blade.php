@@ -28,7 +28,6 @@
             min-height: 100vh;
         }
 
-        /* Card & Layout */
         .main-container { flex: 1; }
         .card {
             border: none;
@@ -45,9 +44,7 @@
             font-size: 1.1rem;
         }
 
-        /* Form Inputs */
         .form-label { font-weight: 600; font-size: 0.85rem; color: #555; }
-        /* Style khusus untuk input Flatpickr agar background putih */
         .form-control, .form-select, .flatpickr-input {
             border-radius: 8px;
             padding: 10px 15px;
@@ -57,7 +54,6 @@
         .is-invalid { border-color: #dc3545 !important; }
         .invalid-feedback { font-size: 0.75rem; color: #dc3545; font-weight: 500; }
 
-        /* Buttons */
         .btn-primary-custom {
             background-color: var(--primary-blue);
             color: white;
@@ -83,7 +79,6 @@
         }
         .btn-cetak:hover { background-color: #1A237E; color: white; }
 
-        /* Alert */
         .alert-warning-custom {
             background-color: var(--warning-bg);
             color: #e65100;
@@ -93,7 +88,6 @@
             font-size: 0.9rem;
         }
 
-        /* Table */
         .table thead th {
             background-color: #f8f9fa;
             font-size: 0.85rem;
