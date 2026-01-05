@@ -11,8 +11,12 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class TugasController extends Controller
 {
+    
     public function index()
     {
+
+        $tasks = Tugas::orderBy('deadline', 'asc')->get();
+        return view('tugas.index', compact('tasks'));
         try {
             $response = Http::timeout(3)->get('http://worldtimeapi.org/api/timezone/Asia/Jakarta');
             $currentTime = $response->successful() ? $response->json()['datetime'] : now();
@@ -20,7 +24,9 @@ class TugasController extends Controller
             $currentTime = now(); 
         }
 
-        $tasks = Tugas::orderBy('deadline', 'asc')->get();
+        $tasks = Tugas::where('user_id', Auth::id()) 
+                      ->orderBy('deadline', 'asc')
+                      ->get();
 
         return view('tugas.index', compact('tasks', 'currentTime'));
     }
@@ -40,7 +46,7 @@ class TugasController extends Controller
         }
 
         Tugas::create([
-           
+            'user_id'        => Auth::id(),     
             'task_name'      => $request->task_name,
             'task_category'  => $request->task_category,
             'deadline'       => $request->deadline,
@@ -50,15 +56,16 @@ class TugasController extends Controller
 
         return redirect()->route('tugas.index')->with('success', 'Tugas berhasil ditambahkan!');
     }
+
     public function edit($id)
     {
-        $task = Tugas::findOrFail($id);
+        $task = Tugas::where('user_id', Auth::id())->findOrFail($id);
         return view('tugas.edit', compact('task'));
     }
 
     public function update(Request $request, $id)
     {
-        $task = Tugas::findOrFail($id);
+        $task = Tugas::where('user_id', Auth::id())->findOrFail($id);
         
         $task->update($request->only(['task_name', 'task_category', 'deadline', 'progres_status', 'catatan']));
 
@@ -67,15 +74,16 @@ class TugasController extends Controller
 
     public function destroy($id)
     {
-        $task = Tugas::findOrFail($id);
+        $task = Tugas::where('user_id', Auth::id())->findOrFail($id);
         $task->delete();
         return redirect()->route('tugas.index')->with('success', 'Tugas berhasil dihapus!');
     }
 
     public function exportPdf()
     {
-        $tasks = Tugas::all(); 
-        $pdf = Pdf::loadView('tugas.pdf', compact('tasks'));
+        $tasks = Tugas::where('user_id', Auth::id())->get(); 
+        $user = Auth::user(); 
+        $pdf = Pdf::loadView('tugas.pdf', compact('tasks', 'user'));
         return $pdf->stream('Laporan_Manajemen_Tugas.pdf');
     }
 }

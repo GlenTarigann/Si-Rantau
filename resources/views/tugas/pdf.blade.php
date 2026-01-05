@@ -27,7 +27,11 @@
         @php
         $now = \Carbon\Carbon::now()->setTimezone('Asia/Jakarta');
         @endphp
-        <p>Nama Mahasiswa: <span class="blue-underline">AMRIN</span><br></p>
+        <p>Nama Mahasiswa: 
+            <span class="blue-underline">
+                {{ strtoupper($user->name) }} 
+            </span>
+        </p>
         <p>Tanggal Cetak: <span class="blue-underline">{{ $now->translatedFormat('d F Y, H:i') }} WIB</span></p>
     </div>
 

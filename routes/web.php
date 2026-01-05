@@ -7,7 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MealPlanController;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\IbadahController; 
+use App\Http\Controllers\IbadahController;
 
 Route::get('/meal-plan', [MealPlanController::class, 'index'])->name('mealplan.index');
 Route::post('/meal-plan/store', [MealPlanController::class, 'store'])->name('mealplan.store');
@@ -19,35 +19,26 @@ Route::get('/recipe-detail/{id}', [MealPlanController::class, 'showRecipe'])->na
 Route::get('/meal-plan/cetak', [MealPlanController::class, 'cetak'])->name('mealplan.cetak');
 
 
-Route::get('/', [TugasController::class, 'index'])->name('tugas.index');
+Route::get('/tugas', [TugasController::class, 'index'])->name('tugas.index');
+Route::post('/tugas', [TugasController::class, 'store'])->name('tugas.store');
+Route::get('/tugas/create', [TugasController::class, 'create'])->name('tugas.create');
+Route::get('/tugas/export', [TugasController::class, 'exportPdf'])->name('tugas.export');
+Route::put('/tugas/{id}', [TugasController::class, 'update'])->name('tugas.update');
+Route::delete('/tugas/{id}', [TugasController::class, 'destroy'])->name('tugas.destroy');
 
-Route::get('/tugas/cetak', [TugasController::class, 'exportPdf'])->name('tugas.export');
-
-Route::resource('tugas', TugasController::class)->except(['show']);
-
-Route::get('tugas/export', [TugasController::class, 'exportPdf'])->name('tugas.export');
 Route::get('/spiritual', [IbadahController::class, 'index'])->name('spiritual.index');
 Route::prefix('spiritual')->name('spiritual.')->group(function () {
-    
     Route::post('/store', [IbadahController::class, 'store'])->name('store');
-    
     Route::put('/update/{id}', [IbadahController::class, 'update'])->name('update');
-    
     Route::delete('/destroy/{id}', [IbadahController::class, 'destroy'])->name('destroy');
-    
     Route::post('/set-agama', [IbadahController::class, 'simpanAgama'])->name('setAgama');
-
     Route::get('/cetak-pdf', [IbadahController::class, 'cetakPdf'])->name('cetak');
 });
 
 Route::get('agenda/cetak_pdf', [AgendaOutdoorController::class, 'cetakPdf'])->name('agenda.cetak');
-
 Route::resource('agenda', AgendaOutdoorController::class);
-
 Route::resource('agenda', AgendaOutdoorController::class);
-
 Route::get('agenda/cetak_pdf', [AgendaOutdoorController::class, 'cetakPdf'])->name('agenda.cetak');
-
 Route::resource('agenda', AgendaOutdoorController::class);
 
 
@@ -66,4 +57,3 @@ Route::get('/register', [AuthController::class, 'showRegister'])->name('register
 Route::post('/register', [AuthController::class, 'register']);
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-

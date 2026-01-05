@@ -109,6 +109,15 @@
             border: 1px solid #e0e0e0;
             padding: 12px;
         }
+
+        footer {
+            padding: 2rem;
+            color: #888;
+            font-size: 0.85rem;
+            text-align: center;
+            margin-top: auto;
+        }
+    </style>
     </style>
 </head>
 
@@ -158,168 +167,184 @@
                             </td>
                             <td>
                                 <div class="d-flex justify-content-center gap-1">
-                                    {{-- Tombol Edit Memicu Modal --}}
                                     <button class="btn btn-sm btn-outline-primary border-0" data-bs-toggle="modal" data-bs-target="#modalEdit{{ $m->id }}"><i class="bi bi-pencil-fill"></i></button>
 
                                     <form action="{{ route('mealplan.destroy', $m->id) }}" method="POST" class="d-inline">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger border-0" onclick="return confirm('Hapus Meal Plan?')"><i class="bi bi-trash3-fill"></i></button>
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger border-0" onclick="return confirm('Hapus Meal Plan?')">
+                                            <i class="bi bi-trash3-fill"></i>
+                                        </button>
                                     </form>
                                 </div>
                             </td>
                         </tr>
 
-                        {{-- MODAL EDIT (Diletakkan di dalam loop agar setiap data punya modal sendiri) --}}
                         <div class="modal fade" id="modalEdit{{ $m->id }}" tabindex="-1">
                             <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content border-0 shadow">
-                                    <div class="modal-header border-0">
-                                        <h5 class="fw-bold"><i class="bi bi-chevron-left me-2" data-bs-dismiss="modal" style="cursor:pointer"></i> Edit Meal Plan</h5>
+                                <div class="modal-content border-0 shadow" style="border-radius: 20px;">
+                                    <div class="modal-header border-0 pb-0">
+                                        <h5 class="fw-bold mt-2 ms-2">Edit Meal Plan</h5>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
+
                                     <form action="{{ route('mealplan.update', $m->id) }}" method="POST">
                                         @csrf
                                         @method('PUT')
-                                        <div class="modal-body text-start">
+                                        <div class="modal-body px-4">
                                             <div class="mb-3">
-                                                <label class="small fw-bold mb-2">Tanggal</label>
-                                                <input type="date" name="planned_date" class="form-control" value="{{ $m->planned_date }}" required>
+                                                <label class="form-label fw-bold small">Tanggal</label>
+                                                <input type="date" name="planned_date" class="form-control py-2"
+                                                    style="border-radius: 10px;" value="{{ $m->planned_date }}" required>
                                             </div>
+
                                             <div class="mb-3">
-                                                <label class="small fw-bold mb-2">Waktu</label>
-                                                <select name="meal_time" class="form-select">
+                                                <label class="form-label fw-bold small">Waktu</label>
+                                                <select name="meal_time" class="form-select py-2" style="border-radius: 10px;">
                                                     <option value="Pagi" {{ $m->meal_time == 'Pagi' ? 'selected' : '' }}>Pagi</option>
                                                     <option value="Siang" {{ $m->meal_time == 'Siang' ? 'selected' : '' }}>Siang</option>
                                                     <option value="Malam" {{ $m->meal_time == 'Malam' ? 'selected' : '' }}>Malam</option>
                                                 </select>
                                             </div>
+
                                             <div class="mb-3 position-relative">
-                                                <label class="form-label fw-bold">Menu</label>
+                                                <label class="form-label fw-bold small">Menu</label>
                                                 <div class="input-group">
-                                                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
-                                                    <input type="text" class="form-control border-start-0 menu-search-input"
-                                                        placeholder="Pilih resep di bawah..." autocomplete="off">
+                                                    <span class="input-group-text bg-white border-end-0" style="border-radius: 10px 0 0 10px;">
+                                                        <i class="bi bi-search text-muted"></i>
+                                                    </span>
+                                                    <input type="text"
+                                                        class="form-control border-start-0 menu-search-input py-2"
+                                                        style="border-radius: 0 10px 10px 0;"
+                                                        placeholder="Pilih resep di bawah..."
+                                                        value="{{ $m->recipe_name }}"
+                                                        autocomplete="off">
                                                 </div>
+
+                                                <input type="hidden" name="recipe_name" class="menu-name-field" value="{{ $m->recipe_name }}">
+                                                <input type="hidden" name="recipe_api_id" class="api-id-field" value="{{ $m->recipe_api_id }}">
 
                                                 <div class="search-results-container list-group position-absolute w-100 shadow-lg d-none"
-                                                    style="z-index: 9999; max-height: 250px; overflow-y: auto; top: 100%;">
+                                                    style="z-index: 9999; max-height: 200px; overflow-y: auto; top: 100%;">
                                                 </div>
-
-                                                <input type="hidden" name="recipe_name" class="menu-name-field">
-                                                <input type="hidden" name="recipe_api_id" class="api-id-field">
                                             </div>
-                                            <input type="hidden" name="recipe_name" id="menu_name_field">
-                                            <input type="hidden" name="recipe_api_id" id="api_id_field">
 
-                                            <div id="search_results_container" class="list-group position-absolute w-100 shadow-sm d-none" style="z-index: 1050; max-height: 200px; overflow-y: auto;">
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold small">Catatan</label>
+                                                <textarea name="notes" class="form-control" rows="3"
+                                                    style="border-radius: 10px;"
+                                                    placeholder="Contoh: Tanpa pedas">{{ $m->notes }}</textarea>
+                                            </div>
+
+                                            <div class="text-end">
+                                                <button type="button" class="btn btn-link btn-sm text-danger text-decoration-none p-0"
+                                                    onclick="if(confirm('Hapus plan ini?')) document.getElementById('delete-form-{{ $m->id }}').submit();">
+                                                    Hapus Plan
+                                                </button>
                                             </div>
                                         </div>
-                                        <div class="mb-3">
-                                            <label class="small fw-bold mb-2">Catatan</label>
-                                            <input type="text" name="notes" class="form-control" value="{{ $m->notes }}" placeholder="Mudah dan enak">
+
+                                        <div class="modal-footer border-0 px-4 pb-4">
+                                            <button type="submit" class="btn w-100 py-3 fw-bold text-white"
+                                                style="background-color: #1a237e; border-radius: 12px;">
+                                                Simpan Perubahan
+                                            </button>
                                         </div>
+                                    </form>
+
+                                    <form id="delete-form-{{ $m->id }}" action="{{ route('mealplan.destroy', $m->id) }}" method="POST" class="d-none">
+                                        @csrf
+                                        @method('DELETE')
+                                    </form>
                                 </div>
-                                <div class="modal-footer border-0 d-flex gap-2">
-                                    <button type="submit" class="btn btn-primary flex-grow-1 py-2 fw-bold" style="border-radius: 10px;">Simpan Perubahan</button>
-                                    <button type="button" class="btn btn-danger py-2 fw-bold px-3" style="border-radius: 10px;"
-                                        onclick="if(confirm('Hapus plan ini?')) document.getElementById('delete-form-{{ $m->id }}').submit();">
-                                        Hapus Meal Plan
+                            </div>
+                        </div>
+
+                        @empty
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">Belum ada Meal Plan.</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <button class="btn btn-tambah text-white" data-bs-toggle="modal" data-bs-target="#modalTambah">Tambah Meal Plan</button>
+                <button type="button" class="btn btn-itinerary px-4" data-bs-toggle="modal" data-bs-target="#modalFilterCetak">
+                    <i class="bi bi-printer me-2"></i> Cetak Planning
+                </button>
+
+                <div class="modal fade" id="modalFilterCetak" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow">
+                            <div class="modal-header border-0">
+                                <h5 class="fw-bold">Pilih Rentang Tanggal</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form action="{{ route('mealplan.cetak') }}" method="GET" target="_blank">
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="small fw-bold mb-2">Dari Tanggal</label>
+                                            <input type="date" name="start_date" class="form-control" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="small fw-bold mb-2">Sampai Tanggal</label>
+                                            <input type="date" name="end_date" class="form-control" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0">
+                                    <button type="submit" class="btn text-white w-100 py-2 fw-bold" style="background-color: #1A237E;" style="border-radius: 10px;">
+                                        Mulai Cetak PDF
                                     </button>
                                 </div>
-                                </form>
-                                <form id="delete-form-{{ $m->id }}" action="{{ route('mealplan.destroy', $m->id) }}" method="POST" class="d-none">
-                                    @csrf @method('DELETE')
-                                </form>
-                            </div>
+                            </form>
                         </div>
+                    </div>
+                </div>
             </div>
-            {{-- END MODAL EDIT --}}
-
-            @empty
-            <tr>
-                <td colspan="7" class="text-center py-5 text-muted">Belum ada Meal Plan.</td>
-            </tr>
-            @endforelse
-            </tbody>
-            </table>
         </div>
 
-        <div class="d-flex justify-content-end gap-2 mt-4">
-            <button class="btn btn-tambah text-white" data-bs-toggle="modal" data-bs-target="#modalTambah">Tambah Meal Plan</button>
-            <button type="button" class="btn btn-itinerary px-4" data-bs-toggle="modal" data-bs-target="#modalFilterCetak">
-                <i class="bi bi-printer me-2"></i> Cetak Planning
-            </button>
+        <div class="mt-5 ms-2">
+            <form action="{{ route('mealplan.index') }}" method="GET" class="mb-4" style="max-width: 400px;">
+                <div class="input-group shadow-sm rounded-3 overflow-hidden border">
+                    <span class="input-group-text bg-white border-0"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" class="form-control border-0" placeholder="Cari resep..." value="{{ request('search') }}">
+                </div>
+            </form>
 
-            <div class="modal fade" id="modalFilterCetak" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content border-0 shadow">
-                        <div class="modal-header border-0">
-                            <h5 class="fw-bold">Pilih Rentang Tanggal</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <form action="{{ route('mealplan.cetak') }}" method="GET" target="_blank">
-                            <div class="modal-body">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label class="small fw-bold mb-2">Dari Tanggal</label>
-                                        <input type="date" name="start_date" class="form-control" required>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label class="small fw-bold mb-2">Sampai Tanggal</label>
-                                        <input type="date" name="end_date" class="form-control" required>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="modal-footer border-0">
-                                <button type="submit" class="btn text-white w-100 py-2 fw-bold" style="background-color: #1A237E;" style="border-radius: 10px;">
-                                    Mulai Cetak PDF
+            <div class="row g-3 mt-4">
+                @foreach($recipes as $recipe)
+                <div class="col-6 col-md-3 col-lg-2">
+                    <div class="card recipe-card h-100 shadow-sm border-0" style="border-radius: 15px; overflow: hidden;">
+                        <img src="{{ $recipe['thumb'] }}" class="card-img-top" style="height: 130px; object-fit: cover;">
+                        <div class="card-body p-2">
+                            <h6 class="fw-bold small mb-3 text-truncate" title="{{ $recipe['title'] }}">{{ $recipe['title'] }}</h6>
+
+                            <div class="d-grid gap-2">
+                                <button type="button"
+                                    class="btn btn-success btn-sm btn-detail-resep"
+                                    style="font-size: 0.7rem; font-weight: 600;"
+                                    data-id="{{ $recipe['key'] }}">
+                                    Lihat Resep
+                                </button>
+
+                                <button type="button"
+                                    class="btn btn-primary btn-sm btn-pilih"
+                                    style="background-color: #1A237E; font-size: 0.7rem; font-weight: 600;"
+                                    data-nama="{{ $recipe['title'] }}"
+                                    data-key="{{ $recipe['key'] }}">
+                                    Pilih Menu
                                 </button>
                             </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="mt-5 ms-2">
-        <form action="{{ route('mealplan.index') }}" method="GET" class="mb-4" style="max-width: 400px;">
-            <div class="input-group shadow-sm rounded-3 overflow-hidden border">
-                <span class="input-group-text bg-white border-0"><i class="bi bi-search"></i></span>
-                <input type="text" name="search" class="form-control border-0" placeholder="Cari resep..." value="{{ request('search') }}">
-            </div>
-        </form>
-
-        <div class="row g-3 mt-4">
-            @foreach($recipes as $recipe)
-            <div class="col-6 col-md-3 col-lg-2">
-                <div class="card recipe-card h-100 shadow-sm border-0" style="border-radius: 15px; overflow: hidden;">
-                    <img src="{{ $recipe['thumb'] }}" class="card-img-top" style="height: 130px; object-fit: cover;">
-                    <div class="card-body p-2">
-                        <h6 class="fw-bold small mb-3 text-truncate" title="{{ $recipe['title'] }}">{{ $recipe['title'] }}</h6>
-
-                        <div class="d-grid gap-2">
-                            <button type="button"
-                                class="btn btn-success btn-sm btn-detail-resep"
-                                style="font-size: 0.7rem; font-weight: 600;"
-                                data-id="{{ $recipe['key'] }}">
-                                Lihat Resep
-                            </button>
-
-                            <button type="button"
-                                class="btn btn-primary btn-sm btn-pilih"
-                                style="background-color: #1A237E; font-size: 0.7rem; font-weight: 600;"
-                                data-nama="{{ $recipe['title'] }}"
-                                data-key="{{ $recipe['key'] }}">
-                                Pilih Menu
-                            </button>
                         </div>
                     </div>
                 </div>
+                @endforeach
             </div>
-            @endforeach
         </div>
-    </div>
     </div>
 
     {{-- MODAL TAMBAH --}}
@@ -402,7 +427,9 @@
         </div>
     </div>
 
-    <footer class="text-center py-5 text-muted small">© 2025 Personal Assistant Mahasiswa Rantau</footer>
+    <footer>
+        &copy; 2025 Personal Assistant Mahasiswa Rantau - Kelompok 9 WAD
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -454,7 +481,7 @@
                     return data[0].map(item => item[0]).join('');
                 } catch (error) {
                     console.error("Gagal translate:", error);
-                    return text; 
+                    return text;
                 }
             }
 
@@ -579,4 +606,5 @@
             });
             </script>
 </body>
+
 </html>

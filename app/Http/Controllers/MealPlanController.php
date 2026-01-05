@@ -71,7 +71,7 @@ class MealPlanController extends Controller
         $meal = \App\Models\Meal::findOrFail($id);
         $meal->update($request->all());
 
-        return redirect()->route('meal-plan.mealplan')->with('success', 'Meal Plan berhasil diperbarui!');
+        return redirect()->route('mealplan.index')->with('success', 'Meal Plan berhasil diperbarui!');
     }
 
     public function showRecipe($id)
@@ -109,7 +109,7 @@ class MealPlanController extends Controller
             return back()->with('error', 'Tidak ada rencana makan pada rentang tanggal tersebut.');
         }
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('cetak', compact('meals', 'start', 'end'));
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('meal-plan.cetak', compact('meals', 'start', 'end'));
 
         return $pdf->stream('Meal-Plan-' . $start . '-to-' . $end . '.pdf');
     }
