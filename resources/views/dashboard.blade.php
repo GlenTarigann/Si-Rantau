@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 
@@ -81,104 +80,198 @@
 
 <body>
 
-   @include('layouts.navbar')
+    @include('layouts.navbar')
 
     <div class="container my-5">
         <div class="row g-4">
 
+            @if($currentWeather)
+            <div class="alert alert-danger" style="background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <div class="d-flex align-items-center">
+                    <span style="margin-right: 10px;">📅</span>
+                    <strong>Hari ini: {{ \Carbon\Carbon::now()->format('d F Y') }} pukul {{ \Carbon\Carbon::now()->format('H:i') }} WIB</strong>
+                    <span style="margin-left: 20px;">
+                        ☁️ Kondisi: {{ $currentWeather['weather_desc'] }} ({{ $currentWeather['t'] }}°C)
+                    </span>
+                </div>
+            </div>
+            @endif
+
             <div class="col-md-6">
-                <div class="card p-4">
-                    <h3 class="card-title">Manajemen Tugas</h3>
-                    <div class="alert alert-holiday mb-3 d-flex align-items-center">
-                        <i class="bi bi-calendar-event me-2"></i>
-                        <span>Hari Libur: 25 Desember 2025 (Hari Natal)</span>
+                <div class="card p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="card-title mb-0">Manajemen Tugas</h3>
+                        <a href="{{ route('tugas.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3" style="font-size: 0.75rem;">
+                            Lihat Semua
+                        </a>
                     </div>
+
                     <table class="table">
+                        @forelse($tasks as $task)
                         <tr>
-                            <td>Kerjakan Proposal WAD</td>
-                            <td class="text-end text-danger fw-bold">Hari ini</td>
+                            <td>{{ $task->task_name ?? $task->title }}</td>
+                            <td class="text-end text-muted">
+                                {{ \Carbon\Carbon::parse($task->deadline)->format('d M Y') }}
+                            </td>
                         </tr>
+                        @empty
                         <tr>
-                            <td>Presentasi Tubes APSI</td>
-                            <td class="text-end text-muted">29 Desember 2025</td>
+                            <td colspan="2" class="text-center text-muted">Tidak ada tugas mendesak.</td>
                         </tr>
-                        <tr>
-                            <td>Responsi Statistika Industri</td>
-                            <td class="text-end text-muted">29 Desember 2025</td>
-                        </tr>
+                        @endforelse
                     </table>
                 </div>
             </div>
 
             <div class="col-md-6">
-                <div class="card p-4">
-                    <h3 class="card-title">Agenda Outdoor</h3>
-                    <table class="table mb-3">
-                        <tr>
-                            <td>Rapat Divisi</td>
-                            <td class="text-end text-muted small">2023-11-15 10:00</td>
-                        </tr>
-                        <tr>
-                            <td>Jogging Pagi</td>
-                            <td class="text-end text-muted small">2023-11-16 06:00</td>
-                        </tr>
-                    </table>
-                    <div class="alert alert-warning-custom small">
-                        <strong>Peringatan:</strong> Cuaca diprediksi Hujan Petir pada jam tersebut. Disarankan membawa jas hujan atau menjadwalkan ulang.
+                <div class="card p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="card-title mb-0">Agenda Outdoor</h3>
+                        <a href="{{ route('agenda.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3" style="font-size: 0.75rem;">
+                            Lihat Semua
+                        </a>
                     </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-borderless align-middle mb-0">
+                            <tbody>
+                                @forelse($agendas as $agenda)
+                                <tr class="border-bottom last:border-0">
+                                    <td class="ps-0 py-3">
+                                        <div class="fw-bold text-dark mb-1">{{ $agenda->nama_kegiatan }}</div>
+                                        <div class="text-muted small">
+                                            <i class="bi bi-geo-alt-fill text-primary me-1"></i> {{ $agenda->lokasi_kota }}
+                                            <span class="mx-1">•</span>
+                                            <i class="bi bi-clock me-1"></i> {{ \Carbon\Carbon::parse($agenda->waktu_mulai)->format('d M, H:i') }}
+                                        </div>
+                                    </td>
+                                    <td class="text-end pe-0 py-3">
+                                        @php
+                                        $cuaca = strtolower($agenda->prediksi_cuaca);
+                                        $isBad = str_contains($cuaca, 'hujan') || str_contains($cuaca, 'petir');
+                                        @endphp
+
+                                        @if($isBad)
+                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill px-3 py-2">
+                                            {{ $agenda->prediksi_cuaca }}
+                                        </span>
+                                        @else
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3 py-2">
+                                            {{ $agenda->prediksi_cuaca }}
+                                        </span>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="2" class="text-center py-5 text-muted">
+                                        <div class="mb-2"><i class="bi bi-calendar-x fs-3 opacity-50"></i></div>
+                                        <small>Belum ada agenda mendatang.</small>
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @if(isset($agendas) && $agendas->count() > 0)
+                    @php $agendaPertama = $agendas->first(); @endphp
+                    @if(str_contains(strtolower($agendaPertama->prediksi_cuaca), 'hujan') || str_contains(strtolower($agendaPertama->prediksi_cuaca), 'petir'))
+                    <div class="alert alert-warning d-flex align-items-center mt-auto mb-0 rounded-3 border-0 shadow-sm p-3" style="background-color: #FFF3E0; color: #E65100;">
+                        <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+                        <div style="font-size: 0.85rem; line-height: 1.4;">
+                            <strong>Waspada:</strong> Agenda terdekat diprediksi <u>{{ $agendaPertama->prediksi_cuaca }}</u>. Siapkan payung!
+                        </div>
+                    </div>
+                    @endif
+                    @endif
                 </div>
             </div>
 
             <div class="col-md-6">
-                <div class="card p-4">
-                    <h3 class="card-title">Jadwal Ibadah</h3>
+                <div class="card p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="card-title mb-0">Jadwal Ibadah</h3>
+                        <a href="{{ route('spiritual.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3" style="font-size: 0.75rem;">
+                            Lihat Semua
+                        </a>
+                    </div>
+
                     <table class="table mb-3">
+                        {{-- Cek apakah dataSpiritual ada dan tipenya muslim --}}
+                        @if(isset($dataSpiritual['type']) && $dataSpiritual['type'] == 'muslim')
                         <tr>
                             <td>Subuh</td>
-                            <td class="text-end fw-bold">04:45</td>
+                            <td class="text-end fw-bold">{{ $dataSpiritual['jadwal']['subuh'] ?? '-' }}</td>
                         </tr>
                         <tr>
                             <td>Dzuhur</td>
-                            <td class="text-end fw-bold">11:58</td>
+                            <td class="text-end fw-bold">{{ $dataSpiritual['jadwal']['dzuhur'] ?? '-' }}</td>
                         </tr>
                         <tr>
                             <td>Ashar</td>
-                            <td class="text-end fw-bold">15:20</td>
+                            <td class="text-end fw-bold">{{ $dataSpiritual['jadwal']['ashar'] ?? '-' }}</td>
                         </tr>
                         <tr>
                             <td>Maghrib</td>
-                            <td class="text-end fw-bold">17:55</td>
+                            <td class="text-end fw-bold">{{ $dataSpiritual['jadwal']['maghrib'] ?? '-' }}</td>
                         </tr>
                         <tr>
                             <td>Isya</td>
-                            <td class="text-end fw-bold">19:10</td>
+                            <td class="text-end fw-bold">{{ $dataSpiritual['jadwal']['isya'] ?? '-' }}</td>
                         </tr>
+                        {{-- Tambahan: Jika user beragama Kristen, tampilkan ayat (sesuai logika Controller kamu) --}}
+                        @elseif(isset($dataSpiritual['type']) && $dataSpiritual['type'] == 'kristen')
+                        <tr>
+                            <td colspan="2" class="fst-italic">
+                                "{{ $dataSpiritual['ayat']['content'] }}" <br>
+                                <strong>{{ $dataSpiritual['ayat']['book']['name'] }} {{ $dataSpiritual['ayat']['chapter'] }}</strong>
+                            </td>
+                        </tr>
+                        @else
+                        <tr>
+                            <td colspan="2" class="text-center">Gagal memuat jadwal atau data tidak tersedia.</td>
+                        </tr>
+                        @endif
                     </table>
-                    <div class="bg-light p-3 rounded-pill d-flex align-items-center">
-                        <i class="bi bi-check-circle-fill text-success me-2"></i>
-                        <span class="small">Catatan Ibadah Anda: <strong>3 dari 5 Tepat Waktu</strong></span>
-                    </div>
                 </div>
             </div>
 
             <div class="col-md-6">
-                <div class="card p-4">
-                    <h3 class="card-title">Meal Plan</h3>
+                <div class="card p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="card-title mb-0">Meal Plan</h3>
+                        <a href="{{ route('mealplan.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3" style="font-size: 0.75rem;">
+                            Lihat Semua
+                        </a>
+                    </div>
+
                     <div class="table-responsive">
                         <table class="table align-middle">
                             <tbody>
+                                @forelse($meals as $meal)
                                 <tr>
-                                    <td class="small">Senin, 22 Des</td>
-                                    <td class="fw-bold">Pagi</td>
-                                    <td>Nasi Goreng</td>
-                                    <td class="text-end"><button class="btn btn-recipe">Resep</button></td>
-                                </tr>
                                 <tr>
-                                    <td class="small">Senin, 22 Des</td>
-                                    <td class="fw-bold">Siang</td>
-                                    <td>Oseng Kangkung</td>
-                                    <td class="text-end"><button class="btn btn-recipe">Resep</button></td>
+                                    <td>
+                                        <div style="width: 120px;" class="fw-bold text-dark">
+                                            {{ \Carbon\Carbon::parse($meal->planned_date)->format('d M Y') }}
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <div style="width: 100px;" class="text-muted text-center">{{ $meal->meal_time }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="flex-grow-1 ps-4 fw-medium text-dark">{{ $meal->recipe_name }}</div>
+                                    </td>
                                 </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted py-4">
+                                        Belum ada rencana makan hari ini.
+                                    </td>
+                                </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>

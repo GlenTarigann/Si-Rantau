@@ -107,32 +107,66 @@
 
     <div class="container my-5 main-container">
         
-        <h4 class="fw-bold mb-4" style="color: #333;">Agenda Outdoor</h4>
+        <div class="card widget-card mb-4 p-4 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h4 class="fw-bold mb-1 text-primary">Agenda Outdoor</h4>
+                    <small class="text-muted">Pantau kegiatan dan cuaca real-time</small>
+                </div>
+
+                <div class="d-flex align-items-center gap-4">
+                    <div class="text-end lh-1">
+                        <div id="digital-clock" class="fw-bold fs-4 text-dark" style="font-family: 'Courier New', monospace;">
+                            {{ date('H:i:s') }}
+                        </div>
+                        <div class="small text-muted fw-bold">
+                            {{ date('d M Y') }} <span class="badge bg-light text-dark border ms-1">WIB</span>
+                        </div>
+                    </div>
+                    
+                    <div class="vr mx-2"></div>
+
+                    <div class="d-flex align-items-center">
+                        @if(isset($currentWeather))
+                            <img src="{{ $currentWeather['image'] }}" alt="Icon" width="50" height="50" class="me-2">
+                            <div class="lh-1">
+                                <div class="fw-bold text-dark" style="font-size: 0.9rem;">
+                                    {{ $currentWeather['weather_desc'] }}
+                                </div>
+                                <div class="small text-primary fw-bold">
+                                    {{ $currentWeather['t'] }}°C
+                                </div>
+                            </div>
+                        @else
+                            <div class="text-muted small fst-italic">
+                                <i class="bi bi-cloud-slash me-1"></i> Data Offline
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
 
         @if(session('warning'))
-            <div class="alert alert-warning-custom d-flex align-items-center mb-4">
-                <i class="bi bi-exclamation-triangle-fill me-3 fs-5"></i>
+            <div class="alert alert-warning d-flex align-items-center mb-4 rounded-3 border-0 shadow-sm" role="alert" style="background-color: #FFF3E0; color: #E65100;">
+                <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
                 <div>{{ session('warning') }}</div>
             </div>
         @elseif(session('success'))
-            <div class="alert alert-success d-flex align-items-center mb-4 border-0 shadow-sm">
-                <i class="bi bi-check-circle-fill me-3 fs-5"></i>
+            <div class="alert alert-success d-flex align-items-center mb-4 rounded-3 border-0 shadow-sm" role="alert">
+                <i class="bi bi-check-circle-fill me-3 fs-4"></i>
                 <div>{{ session('success') }}</div>
-            </div>
-        @else
-            <div class="alert alert-warning-custom d-flex align-items-center mb-4">
-                <i class="bi bi-info-circle-fill me-3 fs-5"></i>
-                <div>
-                    <strong>Peringatan Dini:</strong> Sistem akan otomatis mengecek cuaca saat Anda menyimpan rencana.
-                </div>
             </div>
         @endif
 
         <div class="row g-4">
             
-            <div class="col-md-5">
+            <div class="col-lg-4">
                 <div class="card">
-                    <h5 class="card-title">Input Rencana Kegiatan</h5>
+                    <div class="card-header-custom">
+                        <h5 class="card-title">Input Rencana</h5>
+                        <i class="bi bi-plus-circle-fill text-primary fs-5"></i>
+                    </div>
                     
                     <form action="{{ route('agenda.store') }}" method="POST">
                         @csrf
@@ -149,13 +183,13 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Lokasi (Kota/Kabupaten)</label>
+                            <label class="form-label">Lokasi</label>
                             <select name="lokasi_kota" class="form-select @error('lokasi_kota') is-invalid @enderror">
                                 <option value="" disabled selected>-- Pilih Lokasi --</option>
-                                <option value="Bandung" {{ old('lokasi_kota') == 'Bandung' ? 'selected' : '' }}>Bandung</option>
-                                <option value="Jakarta" {{ old('lokasi_kota') == 'Jakarta' ? 'selected' : '' }}>Jakarta</option>
-                                <option value="Yogyakarta" {{ old('lokasi_kota') == 'Yogyakarta' ? 'selected' : '' }}>Yogyakarta</option>
-                                <option value="Surabaya" {{ old('lokasi_kota') == 'Surabaya' ? 'selected' : '' }}>Surabaya</option>
+                                <option value="Bandung">Bandung</option>
+                                <option value="Jakarta">Jakarta</option>
+                                <option value="Yogyakarta">Yogyakarta</option>
+                                <option value="Surabaya">Surabaya</option>
                             </select>
                             @error('lokasi_kota')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -163,83 +197,95 @@
                         </div>
 
                         <div class="mb-4">
-                            <label class="form-label">Waktu Pelaksanaan <span class="badge bg-secondary ms-1">WIB (24 Jam)</span></label>
-                            <input type="text" name="waktu_mulai" id="waktu_picker"
-                                   class="form-control @error('waktu_mulai') is-invalid @enderror" 
-                                   value="{{ old('waktu_mulai') }}" 
-                                   placeholder="Pilih Tanggal & Jam...">
+                            <label class="form-label">Waktu <span class="badge bg-light text-secondary border ms-1">WIB</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-calendar-event"></i></span>
+                                <input type="text" name="waktu_mulai" id="waktu_picker"
+                                       class="form-control @error('waktu_mulai') is-invalid @enderror" 
+                                       placeholder="Pilih Tanggal & Jam...">
+                            </div>
                             @error('waktu_mulai')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <button type="submit" class="btn btn-primary-custom">
-                            Simpan Rencana
+                            <i class="bi bi-save me-2"></i> Simpan Rencana
                         </button>
                     </form>
                 </div>
             </div>
 
-            <div class="col-md-7">
+            <div class="col-lg-8">
                 <div class="card">
-                    <h5 class="card-title">Daftar Rencana Kegiatan</h5>
+                    <div class="card-header-custom border-bottom pb-3 mb-3">
+                        <h5 class="card-title">Daftar Rencana Kegiatan</h5>
+                        
+                        <a href="{{ route('agenda.cetak') }}" target="_blank" class="btn btn-outline-pdf">
+                            <i class="bi bi-file-earmark-pdf-fill"></i> Export PDF
+                        </a>
+                    </div>
                     
-                    <div class="table-responsive mb-3">
+                    <div class="table-responsive">
                         <table class="table table-hover align-middle">
                             <thead>
                                 <tr>
                                     <th>Nama Kegiatan</th>
                                     <th>Lokasi & Waktu</th>
                                     <th>Prediksi Cuaca</th>
-                                    <th>Aksi</th>
+                                    <th class="text-center">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($agendas as $agenda)
                                 <tr>
-                                    <td class="fw-bold">{{ $agenda->nama_kegiatan }}</td>
+                                    <td class="fw-bold text-dark">{{ $agenda->nama_kegiatan }}</td>
                                     <td>
-                                        <div>{{ $agenda->lokasi_kota }}</div>
+                                        <div class="text-primary fw-semibold">{{ $agenda->lokasi_kota }}</div>
                                         <small class="text-muted">{{ \Carbon\Carbon::parse($agenda->waktu_mulai)->format('d M, H:i') }}</small>
                                     </td>
                                     <td>
-                                        @if(str_contains(strtolower($agenda->prediksi_cuaca), 'hujan') || str_contains(strtolower($agenda->prediksi_cuaca), 'petir'))
-                                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">
-                                                {{ $agenda->prediksi_cuaca }}
+                                        @php
+                                            $cuaca = strtolower($agenda->prediksi_cuaca);
+                                            $bad = str_contains($cuaca, 'hujan') || str_contains($cuaca, 'petir');
+                                        @endphp
+                                        @if($bad)
+                                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill px-3 py-2">
+                                                <i class="bi bi-cloud-lightning-rain me-1"></i> {{ $agenda->prediksi_cuaca }}
                                             </span>
                                         @else
-                                            <span class="badge bg-success bg-opacity-10 text-success border border-success">
-                                                {{ $agenda->prediksi_cuaca }}
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3 py-2">
+                                                <i class="bi bi-sun me-1"></i> {{ $agenda->prediksi_cuaca }}
                                             </span>
                                         @endif
                                     </td>
-                                    <td>
-                                        <a href="{{ route('agenda.edit', $agenda->id_agenda) }}" class="btn btn-sm btn-primary me-1">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
-                                        <form action="{{ route('agenda.destroy', $agenda->id_agenda) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus rencana ini?');">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ route('agenda.edit', $agenda->id_agenda) }}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                            <form action="{{ route('agenda.destroy', $agenda->id_agenda) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus rencana ini?');">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="4" class="text-center py-4 text-muted">
-                                        Belum ada rencana kegiatan.
+                                    <td colspan="4" class="text-center py-5">
+                                        <div class="text-muted">
+                                            <i class="bi bi-calendar-x fs-1 d-block mb-3 opacity-50"></i>
+                                            Belum ada rencana kegiatan. <br> Mulai tambahkan di formulir sebelah kiri.
+                                        </div>
                                     </td>
                                 </tr>
                                 @endforelse
                             </tbody>
                         </table>
                     </div>
-
-                    <a href="{{ route('agenda.cetak') }}" target="_blank" class="btn btn-cetak mt-auto">
-                        <i class="bi bi-printer me-2"></i> Cetak Itinerary
-                    </a>
-
                 </div>
             </div>
         </div>
@@ -250,18 +296,26 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
-        // Inisialisasi Flatpickr pada input dengan ID "waktu_picker"
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const el = document.getElementById('digital-clock');
+            if(el) el.textContent = `${hours}:${minutes}:${seconds}`;
+        }
+        setInterval(updateClock, 1000);
+
         flatpickr("#waktu_picker", {
-            enableTime: true,       // Aktifkan pilihan jam
-            dateFormat: "Y-m-d H:i", // Format yang dikirim ke database
-            time_24hr: true,        // WAJIB: Paksa format 24 jam (Tanpa AM/PM)
-            minDate: "today",       // Tidak boleh pilih tanggal lampau
-            defaultHour: 8,         // Jam default saat dibuka
-            altInput: true,         // Tampilan untuk user lebih cantik
-            altFormat: "j F Y, H:i" // Contoh tampilan: 28 Desember 2025, 14:00
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true,
+            minDate: "today",
+            defaultHour: 8,
+            altInput: true,
+            altFormat: "j F Y, H:i"
         });
     </script>
 </body>

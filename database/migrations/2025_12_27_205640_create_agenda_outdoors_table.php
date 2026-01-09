@@ -21,7 +21,7 @@ return new class extends Migration
         
             // Ini nullable karena isinya didapat dari API (bukan input user)
             // Jadi kalau API error, data tetap bisa masuk (opsional)
-            $table->string('prediksi_cuaca', 50)->nullable();
+            $table->string('prediksi_cuaca', 255)->nullable();
         
             $table->enum('status_kegiatan', ['Scheduled', 'Done', 'Canceled'])->default('Scheduled');
         

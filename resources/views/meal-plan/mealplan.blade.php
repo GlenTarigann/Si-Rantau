@@ -331,13 +331,6 @@
                                     Lihat Resep
                                 </button>
 
-                                <button type="button"
-                                    class="btn btn-primary btn-sm btn-pilih"
-                                    style="background-color: #1A237E; font-size: 0.7rem; font-weight: 600;"
-                                    data-nama="{{ $recipe['title'] }}"
-                                    data-key="{{ $recipe['key'] }}">
-                                    Pilih Menu
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -605,6 +598,8 @@
             });
             });
             </script>
+
+            
 </body>
 
 </html>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,11 +11,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        body { 
-            background-color: #f8f9fa; 
-            font-family: 'Poppins', sans-serif; 
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Poppins', sans-serif;
         }
-       
+
         .alert-holiday {
             background-color: #f8d7da;
             border: 1px solid #f1aeae;
@@ -23,37 +24,92 @@
             font-weight: 500;
         }
 
-        .card { border: 1px solid #e0e0e0; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
-        .form-label { font-weight: 600; font-size: 0.8rem; margin-bottom: 0.4rem; }
-        .form-control, .form-select { border-radius: 8px; border: 1px solid #d1d5db; padding: 0.5rem 0.8rem; font-size: 0.85rem; }
-        
-        .table-container { border: 1px solid #dee2e6; border-radius: 12px; overflow: hidden; background: white; }
-        .table thead th { font-size: 0.7rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; padding: 12px; border-bottom: 1px solid #dee2e6; }
-        .table tbody td { border-bottom: 1px solid #f0f0f0; }
-        .table-danger { background-color: #fee2e2 !important; }
-        .btn-primary { background-color: #1e3a8a; border: none; font-weight: 500; }
-        .btn-dark { background-color: #1f2937; border: none; }
+        .card {
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+        }
 
-        .modal-content { border-radius: 12px; border: none; }
-        .modal-header { border-bottom: 1px solid #e5e7eb; }
+        .form-label {
+            font-weight: 600;
+            font-size: 0.8rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            padding: 0.5rem 0.8rem;
+            font-size: 0.85rem;
+        }
+
+        .table-container {
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            overflow: hidden;
+            background: white;
+        }
+
+        .table thead th {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 0.05em;
+            padding: 12px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .table tbody td {
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .table-danger {
+            background-color: #fee2e2 !important;
+        }
+
+        .btn-primary {
+            background-color: #1e3a8a;
+            border: none;
+            font-weight: 500;
+        }
+
+        .btn-dark {
+            background-color: #1f2937;
+            border: none;
+        }
+
+        .modal-content {
+            border-radius: 12px;
+            border: none;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid #e5e7eb;
+        }
     </style>
 </head>
+
 <body>
 
     @include('layouts.navbar')
-
     <div class="container-fluid px-5 py-4">
-        
         <div class="alert alert-holiday d-flex align-items-center mb-4 shadow-sm p-3">
             <i class="bi bi-calendar-event me-3 fs-4"></i>
             <div>
-                @php
-                    \Carbon\Carbon::setLocale('id');
-                    $now = \Carbon\Carbon::now('Asia/Jakarta');
-                @endphp
-                <span>Hari libur: <strong>{{ $now->translatedFormat('d F Y') }}</strong> pukul <strong>{{ $now->format('H:i') }} WIB</strong></span>
+                @if(isset($libur) && $libur)
+                Hari libur:
+                <strong>{{ $libur['holiday_name'] }}</strong> —
+                @else
+                Hari ini:
+                @endif
+
+                <strong>{{ $today->translatedFormat('d F Y') }}</strong>
+                pukul <strong>{{ $today->format('H:i') }} WIB</strong>
             </div>
         </div>
+
+
 
         <div class="card mb-4 shadow-sm">
             <div class="card-body p-4">
@@ -129,13 +185,13 @@
                             <td class="text-start small px-3 text-muted">{{ $task->catatan ?? '-' }}</td>
                             <td>
                                 <div class="d-flex justify-content-center gap-3">
-                                    
-                                    <button type="button" class="border-0 bg-transparent text-primary p-0 fs-5" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#editModal{{ $task->id }}">
+
+                                    <button type="button" class="border-0 bg-transparent text-primary p-0 fs-5"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editModal{{ $task->id }}">
                                         <i class="bi bi-pencil-square"></i>
                                     </button>
-                                    
+
 
                                     <form action="{{ route('tugas.destroy', $task->id) }}" method="POST" class="d-inline">
                                         @csrf @method('DELETE')
@@ -158,7 +214,7 @@
                                         <form action="{{ route('tugas.update', $task->id) }}" method="POST" id="editForm{{ $task->id }}">
                                             @csrf
                                             @method('PUT')
-                                            
+
                                             <div class="row g-3">
                                                 <div class="col-md-6">
                                                     <label class="form-label">Nama Tugas</label>
@@ -173,8 +229,8 @@
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">Waktu Deadline</label>
-                                                    <input type="datetime-local" name="deadline" class="form-control" 
-                                                           value="{{ date('Y-m-d\TH:i', strtotime($task->deadline)) }}" required>
+                                                    <input type="datetime-local" name="deadline" class="form-control"
+                                                        value="{{ date('Y-m-d\TH:i', strtotime($task->deadline)) }}" required>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">Status</label>
@@ -212,4 +268,5 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

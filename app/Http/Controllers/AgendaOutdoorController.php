@@ -13,7 +13,42 @@ class AgendaOutdoorController extends Controller
     public function index()
     {
         $agendas = AgendaOutdoor::orderBy('waktu_mulai', 'asc')->get();
-        return view('agenda.index', compact('agendas'));
+        
+        
+        $currentWeather = $this->getCuacaSaatIni('32.73.02.1005');
+
+        return view('agenda.index', compact('agendas', 'currentWeather'));
+    }
+
+    private function getCuacaSaatIni($kodeWilayah)
+    {
+        try {
+            $url = "https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4={$kodeWilayah}";
+            $response = Http::withOptions(['verify' => false])->get($url);
+            $data = $response->json();
+
+            if (!isset($data['data'][0]['cuaca'])) return null;
+
+            $listCuaca = $data['data'][0]['cuaca'];
+            $now = Carbon::now('Asia/Jakarta');
+            
+            $closestData = null;
+            $minDiff = 999999;
+
+            foreach ($listCuaca as $hari) {
+                foreach ($hari as $item) {
+                    if (isset($item['local_datetime'])) {
+                        $cuacaTime = Carbon::parse($item['local_datetime'], 'Asia/Jakarta');
+                        $diff = abs($now->diffInMinutes($cuacaTime));
+                        if ($diff < $minDiff) {
+                            $minDiff = $diff;
+                            $closestData = $item;
+                        }
+                    }
+                }
+            }
+            return $closestData;
+        } catch (\Exception $e) { return null; }
     }
 
     public function store(Request $request)
@@ -100,7 +135,6 @@ class AgendaOutdoorController extends Controller
     private function getCuacaBaruJson($kota, $waktuInput)
     {
         try {
-            // 1. Mapping Kode Wilayah (Adm4)
             $adm4 = '';
 
             if ($kota == 'Bandung') {
@@ -115,7 +149,6 @@ class AgendaOutdoorController extends Controller
                 return "Lokasi Tidak Dikenal";
             }
 
-            // 2. Tembak API
             $url = "https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4={$adm4}";
             
             \Illuminate\Support\Facades\Log::info("Requesting BMKG URL: " . $url);
@@ -123,21 +156,18 @@ class AgendaOutdoorController extends Controller
             $response = Http::withOptions(['verify' => false])->get($url);
             
             if ($response->failed()) {
-                $status = $response->status(); // Misal: 404 atau 500
+                $status = $response->status(); 
                 return "Gagal API ($status). Cek Kode Wilayah.";
             }
 
             $data = $response->json();
 
-            // Cek Struktur Data Utama
             if (!isset($data['data'][0]['cuaca'])) {
                 return "Data Cuaca Kosong (Struktur Berubah)";
             }
             
-            // Ambil Array Cuaca Per Hari
             $kelompokCuacaPerHari = $data['data'][0]['cuaca'];
 
-            // 3. Logika Pencocokan Waktu
             $cuacaTerpilih = "Tidak Ada Data";
             $selisihTerkecil = 999999999;
             
@@ -151,7 +181,6 @@ class AgendaOutdoorController extends Controller
 
                         if ($selisih < $selisihTerkecil) {
                             $selisihTerkecil = $selisih;
-                            // Ambil weather_desc (Bahasa Indonesia)
                             $cuacaTerpilih = $item['weather_desc'] ?? 'Data Error';
                         }
                     }
@@ -161,8 +190,9 @@ class AgendaOutdoorController extends Controller
             return $cuacaTerpilih;
 
         } catch (\Exception $e) {
-            // Tampilkan error teknis jika ada crash kode
-            return "Gangguan Sistem: " . $e->getMessage();
+            \Illuminate\Support\Facades\Log::error("API Error: " . $e->getMessage());
+
+            return "Gangguan Koneksi API"; 
         }
     }
 
