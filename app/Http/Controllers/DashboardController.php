@@ -19,6 +19,10 @@ class DashboardController extends Controller
 
         $user = Auth::user();
         $userId = $user->id;
+        $userId = Auth::id();
+        $user = Auth::user();
+        $today = date('Y-m-d');
+        $userAgama = $user->agama;
 
         $currentWeather = $this->getCuacaSaatIni('32.73.02.1005');
 
@@ -31,7 +35,7 @@ class DashboardController extends Controller
 
         $today = Carbon::now()->format('Y-m-d');
         $meals = \App\Models\Meal::orderBy('planned_date', 'asc')
-            ->take(5) 
+            ->take(5)
             ->get();
 
         $today = date('Y-m-d');
@@ -39,15 +43,30 @@ class DashboardController extends Controller
         $tasks = Tugas::where('user_id', $userId)->get();
 
         $cacheKey = "spiritual_data_{$userId}_{$today}";
-        $dataSpiritual = Cache::remember($cacheKey, 720, function () use ($user) {
-            if ($user->agama == 'Islam') {
+        $dataSpiritual = Cache::remember($cacheKey, 720, function () use ($userAgama) {
+            if (strcasecmp($userAgama, 'Islam') === 0) {
                 try {
-                    $year = date('Y');
-                    $month = date('m');
-                    $day = date('d');
-                    $response = Http::withoutVerifying()->timeout(10)
-                        ->get("https://api.myquran.com/v2/sholat/jadwal/1219/{$year}/{$month}/{$day}");
-                    return $response->successful() ? $response->json()['data']['jadwal'] : null;
+                    $response = Http::withoutVerifying()->timeout(10)->get("https://api.myquran.com/v2/sholat/jadwal/1219/" . date('Y/m/d'));
+                    return $response->successful() ? ['type' => 'muslim', 'jadwal' => $response->json()['data']['jadwal']] : null;
+                } catch (\Exception $e) {
+                    return null;
+                }
+            } else {
+                // LOGIKA UNTUK KRISTEN
+                try {
+                    $url = "https://api-alkitab.vercel.app/api/passage?passage=Yohanes&num=1";
+                    $response = Http::withoutVerifying()->timeout(10)->get($url);
+                    if ($response->successful()) {
+                        $hasil = $response->json();
+                        return [
+                            'type' => 'kristen',
+                            'ayat' => [
+                                'content' => $hasil['verses'][0]['content'],
+                                'book' => $hasil['book']['name'],
+                                'chapter' => $hasil['chapter']
+                            ]
+                        ];
+                    }
                 } catch (\Exception $e) {
                     return null;
                 }
@@ -55,19 +74,12 @@ class DashboardController extends Controller
             return null;
         });
 
-        $dataIbadah = Ibadah::where('user_id', $userId)
-            ->where('date', $today)
-            ->get();
-
         $AktivitasIbadah = Ibadah::where('user_id', $userId)
             ->whereDate('date', $today)
             ->orderBy('time', 'asc')
             ->get();
 
-
-
-
-        return view('dashboard', compact('agendas', 'meals', 'tasks', 'dataSpiritual', 'dataIbadah', 'AktivitasIbadah', 'currentWeather'));
+        return view('dashboard', compact('agendas', 'meals', 'tasks', 'dataSpiritual', 'AktivitasIbadah', 'currentWeather'));
     }
 
     private function getCuacaSaatIni($kodeWilayah)

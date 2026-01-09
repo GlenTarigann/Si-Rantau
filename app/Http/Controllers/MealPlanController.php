@@ -36,8 +36,10 @@ class MealPlanController extends Controller
         } catch (\Exception $e) {
             $recipes = [];
         }
+        
+        $selectedMenu = $request->query('selected_menu');
 
-        return view('meal-plan.mealplan', compact('meals', 'recipes'));
+        return view('meal-plan.mealplan', compact('meals', 'recipes', 'selectedMenu'));
     }
 
     public function store(Request $request)

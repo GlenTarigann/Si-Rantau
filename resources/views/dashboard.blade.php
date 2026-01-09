@@ -197,43 +197,88 @@
                         </a>
                     </div>
 
-                    <table class="table mb-3">
-                        {{-- Cek apakah dataSpiritual ada dan tipenya muslim --}}
-                        @if(isset($dataSpiritual['type']) && $dataSpiritual['type'] == 'muslim')
-                        <tr>
-                            <td>Subuh</td>
-                            <td class="text-end fw-bold">{{ $dataSpiritual['jadwal']['subuh'] ?? '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td>Dzuhur</td>
-                            <td class="text-end fw-bold">{{ $dataSpiritual['jadwal']['dzuhur'] ?? '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td>Ashar</td>
-                            <td class="text-end fw-bold">{{ $dataSpiritual['jadwal']['ashar'] ?? '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td>Maghrib</td>
-                            <td class="text-end fw-bold">{{ $dataSpiritual['jadwal']['maghrib'] ?? '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td>Isya</td>
-                            <td class="text-end fw-bold">{{ $dataSpiritual['jadwal']['isya'] ?? '-' }}</td>
-                        </tr>
-                        {{-- Tambahan: Jika user beragama Kristen, tampilkan ayat (sesuai logika Controller kamu) --}}
-                        @elseif(isset($dataSpiritual['type']) && $dataSpiritual['type'] == 'kristen')
-                        <tr>
-                            <td colspan="2" class="fst-italic">
-                                "{{ $dataSpiritual['ayat']['content'] }}" <br>
-                                <strong>{{ $dataSpiritual['ayat']['book']['name'] }} {{ $dataSpiritual['ayat']['chapter'] }}</strong>
-                            </td>
-                        </tr>
-                        @else
-                        <tr>
-                            <td colspan="2" class="text-center">Gagal memuat jadwal atau data tidak tersedia.</td>
-                        </tr>
-                        @endif
-                    </table>
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2" style="font-size: 0.8rem; text-transform: uppercase;">Jadwal / Renungan</h6>
+                        <table class="table table-sm border-0">
+                            @if(isset($dataSpiritual['type']) && $dataSpiritual['type'] == 'muslim')
+                            <tr>
+                                <td class="border-0">Subuh</td>
+                                <td class="text-end fw-bold border-0">{{ $dataSpiritual['jadwal']['subuh'] ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="border-0">Dzuhur</td>
+                                <td class="text-end fw-bold border-0">{{ $dataSpiritual['jadwal']['dzuhur'] ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="border-0">Ashar</td>
+                                <td class="text-end fw-bold border-0">{{ $dataSpiritual['jadwal']['ashar'] ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="border-0">Maghrib</td>
+                                <td class="text-end fw-bold border-0">{{ $dataSpiritual['jadwal']['maghrib'] ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="border-0">Isya</td>
+                                <td class="text-end fw-bold border-0">{{ $dataSpiritual['jadwal']['isya'] ?? '-' }}</td>
+                            </tr>
+                            @elseif(isset($dataSpiritual['type']) && $dataSpiritual['type'] == 'kristen')
+                            <tr>
+                                <td colspan="2" class="fst-italic border-0 p-3 bg-light rounded">
+                                    "{{ $dataSpiritual['ayat']['content'] }}" <br>
+                                    <small class="fw-bold">— {{ $dataSpiritual['ayat']['book']['name'] }} {{ $dataSpiritual['ayat']['chapter'] }}</small>
+                                </td>
+                            </tr>
+                            @else
+                            <tr>
+                                <td colspan="2" class="text-center text-muted">Data jadwal tidak tersedia.</td>
+                            </tr>
+                            @endif
+                        </table>
+                    </div>
+
+                    <hr>
+
+                    <div>
+                        <h6 class="text-muted mb-3" style="font-size: 0.8rem; text-transform: uppercase;">Target Ibadah Kamu</h6>
+                        <div class="list-group list-group-flush">
+                            @forelse($AktivitasIbadah as $item)
+                            <div class="list-group-item d-flex justify-content-between align-items-center px-0 border-0 mb-2">
+                                <div class="d-flex align-items-start">
+                                    <form action="{{ route('spiritual.update', $item->id) }}" method="POST" class="me-3">
+                                        @csrf
+                                        @method('PUT')
+                                        <input type="hidden" name="status" value="{{ $item->status == 'pending' ? 'terlaksana' : 'pending' }}">
+                                        <button type="submit" style="background: none; border: none; padding: 0; cursor: pointer; line-height: 1;">
+                                            @if($item->status == 'terlaksana')
+                                            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                                            @else
+                                            <i class="bi bi-circle text-muted fs-5"></i>
+                                            @endif
+                                        </button>
+                                    </form>
+
+                                    <div>
+                                        <p class="mb-0 fw-bold {{ $item->status == 'terlaksana' ? 'text-decoration-line-through text-muted' : 'text-dark' }}" style="font-size: 1.1rem;">
+                                            {{ $item->prayer_name }}
+                                        </p>
+                                        <small class="text-muted">
+                                            {{ \Carbon\Carbon::parse($item->date)->translatedFormat('d M Y') }}
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <div class="text-end">
+                                    <span class="badge rounded-pill px-3 py-2" style="background-color: #00d4ff; color: black; font-weight: bold;">
+                                        {{ \Carbon\Carbon::parse($item->time)->format('H:i') }} WIB
+                                    </span>
+                                </div>
+                            </div>
+                            @empty
+                            <p class="text-center text-muted small my-3">Belum ada target khusus hari ini.</p>
+                            @endforelse
+                        </div>
+                    </div>
+
                 </div>
             </div>
 

@@ -90,8 +90,8 @@
         }
 
         .btn-pilih-menu {
-            background-color: #A5D6A7;
-            color: #2E7D32;
+            background-color: #323a90;
+            color: #f6f9fc;
             border: none;
             font-size: 0.75rem;
             font-weight: 600;
@@ -331,6 +331,14 @@
                                     Lihat Resep
                                 </button>
 
+                                <button type="button"
+                                    class="btn btn-primary btn-pilih-menu"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalTambah"
+                                    data-title="{{ $recipe['title'] }}"
+                                    data-id="{{ $recipe['key'] }}">
+                                    Pilih Menu
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -372,7 +380,7 @@
                         </div>
 
                         <input type="hidden" name="recipe_name" class="menu-name-field">
-                        <input type="hidden" name="recipe_api_id" class="api-id-field">
+                        <input type="hidden" name="recipe_api_id_alt" class="api-id-field">
                     </div>
                     <div class="mb-3"><label class="small fw-bold mb-2">Catatan</label><textarea name="notes" class="form-control shadow-sm" rows="3" placeholder="Contoh: Tanpa pedas"></textarea></div>
                 </div>
@@ -428,44 +436,11 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.btn-pilih').forEach(button => {
-                button.addEventListener('click', function() {
-                    const nama = this.getAttribute('data-nama');
-                    const key = this.getAttribute('data-key');
-
-                    document.getElementById('menu_name_field').value = nama;
-                    document.getElementById('api_id_field').value = key;
-
-                    var modalTambah = new bootstrap.Modal(document.getElementById('modalTambah'));
-                    modalTambah.show();
-                });
-            });
-        });
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const alert = document.getElementById('success-alert');
-
-            if (alert) {
-                setTimeout(function() {
-                    alert.style.transition = "opacity 0.5s ease";
-                    alert.style.opacity = "0";
-
-                    setTimeout(function() {
-                        alert.remove();
-                    }, 500);
-                }, 3000);
-            }
-
-        });
-    </script>
-
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
+            // --- 1. INISIALISASI MODAL ---
             const modalResep = new bootstrap.Modal(document.getElementById('modalResep'));
+            const modalTambah = new bootstrap.Modal(document.getElementById('modalTambah'));
 
+            // --- 2. FUNGSI TRANSLATE (REUSABLE) ---
             async function translateText(text) {
                 if (!text || text.trim() === "") return "";
                 try {
@@ -474,14 +449,57 @@
                     return data[0].map(item => item[0]).join('');
                 } catch (error) {
                     console.error("Gagal translate:", error);
-                    return text;
+                    return text; // Fallback ke teks asli jika gagal
                 }
             }
 
+            // --- 3. AUTO-HIDE ALERT ---
+            const alert = document.getElementById('success-alert');
+            if (alert) {
+                setTimeout(() => {
+                    alert.style.transition = "opacity 0.5s ease";
+                    alert.style.opacity = "0";
+                    setTimeout(() => alert.remove(), 500);
+                }, 3000);
+            }
+
+            // --- 4. HANDLING TOMBOL PILIH (ISI MODAL TAMBAH) ---
+            // Diperbaiki: Menyesuaikan class dan atribut agar form terisi otomatis
+            document.addEventListener('click', function(e) {
+                // Mencari tombol dengan class .btn-pilih-menu
+                const btnPilih = e.target.closest('.btn-pilih-menu');
+
+                if (btnPilih) {
+                    const nama = btnPilih.getAttribute('data-title');
+                    const key = btnPilih.getAttribute('data-id');
+
+                    // Target Modal Tambah
+                    const modalEl = document.getElementById('modalTambah');
+
+                    // Isi Input Visible (Pencarian)
+                    const searchInput = modalEl.querySelector('.menu-search-input');
+                    if (searchInput) searchInput.value = nama;
+
+                    // Isi Hidden Input (Nama Resep)
+                    const nameField = modalEl.querySelector('.menu-name-field');
+                    if (nameField) nameField.value = nama;
+
+                    // Isi Hidden Input (API ID - ID Utama)
+                    const apiIdMain = document.getElementById('api_id_field');
+                    if (apiIdMain) apiIdMain.value = key;
+
+                    // Isi Hidden Input (API ID - Backup di dalam input group)
+                    const apiIdClass = modalEl.querySelector('.api-id-field');
+                    if (apiIdClass) apiIdClass.value = key;
+                }
+            });
+
+            // --- 5. DETAIL RESEP & TRANSLASI ---
             document.querySelectorAll('.btn-detail-resep').forEach(button => {
                 button.addEventListener('click', async function() {
                     const mealId = this.getAttribute('data-id');
 
+                    // State Loading
                     document.getElementById('loading-state').classList.remove('d-none');
                     document.getElementById('content-resep').classList.add('d-none');
                     modalResep.show();
@@ -491,115 +509,101 @@
                         const data = await response.json();
                         const meal = data.meals[0];
 
+                        // Terjemahkan Judul & Instruksi
                         const instruksiIndo = await translateText(meal.strInstructions);
 
                         document.getElementById('modal-title').innerText = meal.strMeal;
                         document.getElementById('modal-img').src = meal.strMealThumb;
                         document.getElementById('modal-instructions').innerText = instruksiIndo;
 
+                        // Olah Ingredients & Measure
                         let ingredientsHtml = '';
                         for (let i = 1; i <= 20; i++) {
                             const ing = meal[`strIngredient${i}`];
                             const measure = meal[`strMeasure${i}`];
                             if (ing && ing.trim() !== "") {
+                                // Translasi bahan satu per satu
                                 const ingIndo = await translateText(ing);
                                 ingredientsHtml += `<li><strong>${measure}</strong> ${ingIndo}</li>`;
                             }
                         }
                         document.getElementById('modal-ingredients').innerHTML = ingredientsHtml;
 
+                        // Switch State
                         document.getElementById('loading-state').classList.add('d-none');
                         document.getElementById('content-resep').classList.remove('d-none');
 
                     } catch (error) {
                         console.error("Error API:", error);
-                        alert("Gagal memuat resep. Pastikan koneksi internet aktif.");
+                        alert("Gagal memuat resep.");
                         modalResep.hide();
                     }
                 });
             });
 
-            document.querySelectorAll('.btn-pilih').forEach(button => {
-                button.addEventListener('click', function() {
-                    const nama = this.getAttribute('data-nama');
-                    const key = this.getAttribute('data-key');
-                    document.getElementById('menu_name_field').value = nama;
-                    document.getElementById('api_id_field').value = key;
-                    const modalTambah = new bootstrap.Modal(document.getElementById('modalTambah'));
-                    modalTambah.show();
+            // --- 6. LIVE SEARCH MEAL ---
+            document.querySelectorAll('.menu-search-input').forEach(input => {
+                const container = input.closest('.mb-3') || input.parentElement;
+                const resultsDiv = container.querySelector('.search-results-container');
+                const nameField = container.querySelector('.menu-name-field');
+                const idField = container.querySelector('.api-id-field');
+
+                // Tambahan: Juga cari input hidden utama jika tidak ketemu di container
+                const mainIdField = document.getElementById('api_id_field');
+
+                input.addEventListener('input', async function() {
+                    const query = this.value.trim();
+                    if (query.length < 2) {
+                        resultsDiv.classList.add('d-none');
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(query)}`);
+                        const data = await response.json();
+                        resultsDiv.innerHTML = '';
+
+                        if (data.meals) {
+                            resultsDiv.classList.remove('d-none');
+                            data.meals.forEach(meal => {
+                                const btn = document.createElement('button');
+                                btn.type = 'button';
+                                btn.className = 'list-group-item list-group-item-action d-flex align-items-center gap-3 py-2';
+                                btn.innerHTML = `
+                                <img src="${meal.strMealThumb}" style="width: 35px; height: 35px; object-fit: cover;" class="rounded">
+                                <div class="text-start">
+                                    <div class="small fw-bold text-dark">${meal.strMeal}</div>
+                                    <div class="text-muted" style="font-size: 0.65rem;">${meal.strCategory}</div>
+                                </div>`;
+
+                                btn.addEventListener('click', () => {
+                                    input.value = meal.strMeal;
+                                    if (nameField) nameField.value = meal.strMeal;
+                                    if (idField) idField.value = meal.idMeal;
+                                    if (mainIdField) mainIdField.value = meal.idMeal; // Isi hidden field utama
+                                    resultsDiv.classList.add('d-none');
+                                });
+                                resultsDiv.appendChild(btn);
+                            });
+                        } else {
+                            resultsDiv.classList.remove('d-none');
+                            resultsDiv.innerHTML = '<div class="list-group-item small text-center">Resep tidak ditemukan</div>';
+                        }
+                    } catch (err) {
+                        console.log("Error Search");
+                    }
                 });
+            });
+
+            // Tutup search result jika klik di luar
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.menu-search-input')) {
+                    document.querySelectorAll('.search-results-container').forEach(c => c.classList.add('d-none'));
+                }
             });
         });
     </script>
 
-    <<script>
-        document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.menu-search-input').forEach(input => {
-        const container = input.closest('.mb-3');
-        const resultsDiv = container.querySelector('.search-results-container');
-        const nameField = container.querySelector('.menu-name-field');
-        const idField = container.querySelector('.api-id-field');
-
-        input.addEventListener('input', async function() {
-        const query = this.value.trim();
-
-        if (query.length < 2) {
-            resultsDiv.classList.add('d-none');
-            return;
-            }
-
-            try {
-            const response=await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(query)}`);
-            const data=await response.json();
-
-            resultsDiv.innerHTML='' ;
-
-            if (data.meals) {
-            resultsDiv.classList.remove('d-none');
-            resultsDiv.style.display='block' ;
-
-            data.meals.forEach(meal=> {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'list-group-item list-group-item-action d-flex align-items-center gap-3 py-2';
-            btn.style.borderBottom = '1px solid #eee';
-
-            btn.innerHTML = `
-            <img src="${meal.strMealThumb}" style="width: 35px; height: 35px; object-fit: cover;" class="rounded">
-            <div class="text-start">
-                <div class="small fw-bold text-dark" style="font-size: 0.85rem;">${meal.strMeal}</div>
-                <div class="text-muted" style="font-size: 0.65rem;">${meal.strCategory}</div>
-            </div>
-            `;
-
-            btn.addEventListener('click', function() {
-            input.value = meal.strMeal;
-            nameField.value = meal.strMeal;
-            idField.value = meal.idMeal;
-            resultsDiv.classList.add('d-none');
-            });
-
-            resultsDiv.appendChild(btn);
-            });
-            } else {
-            resultsDiv.classList.remove('d-none');
-            resultsDiv.innerHTML = '<div class="list-group-item small">Resep tidak ditemukan</div>';
-            }
-            } catch (error) {
-            console.log("Error API");
-            }
-            });
-            });
-
-            document.addEventListener('click', function(e) {
-            if (!e.target.closest('.position-relative')) {
-            document.querySelectorAll('.search-results-container').forEach(c => c.classList.add('d-none'));
-            }
-            });
-            });
-            </script>
-
-            
 </body>
 
 </html>
