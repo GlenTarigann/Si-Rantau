@@ -89,7 +89,7 @@
             <div class="alert alert-danger" style="background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                 <div class="d-flex align-items-center">
                     <span style="margin-right: 10px;">📅</span>
-                    <strong>Hari ini: {{ \Carbon\Carbon::now()->format('d F Y') }} pukul {{ \Carbon\Carbon::now()->format('H:i') }} WIB</strong>
+                    <strong>Hari ini: {{ \Carbon\Carbon::now()->format('d F Y') }} pukul {{ \Carbon\Carbon::now('Asia/Jakarta')->format('H:i') }} WIB</strong>
                     <span style="margin-left: 20px;">
                         ☁️ Kondisi: {{ $currentWeather['weather_desc'] }} ({{ $currentWeather['t'] }}°C)
                     </span>
