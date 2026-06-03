@@ -13,7 +13,7 @@
     <style>
         :root {
             --primary-blue: #1A237E;
-            --bg-light: #f4f7fe;
+            --bg-light: #f8f9fa;
         }
 
         body {
@@ -21,10 +21,128 @@
             background-color: var(--bg-light);
         }
 
+        /* ======= HERO BANNER ======= */
+        .hero-banner {
+            background: linear-gradient(135deg, #1a237e 0%, #1565c0 40%, #0288d1 100%);
+            border-radius: 20px;
+            padding: 2rem 2.5rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(26, 35, 126, 0.25);
+            margin-bottom: 2rem;
+        }
+
+        .hero-banner::before {
+            content: '';
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 220px;
+            height: 220px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 50%;
+        }
+
+        .hero-banner::after {
+            content: '';
+            position: absolute;
+            bottom: -40px;
+            right: 120px;
+            width: 140px;
+            height: 140px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 50%;
+        }
+
+        .hero-greeting {
+            font-size: 0.85rem;
+            font-weight: 400;
+            opacity: 0.8;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .hero-name {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            line-height: 1.2;
+        }
+
+        .hero-date {
+            font-size: 0.9rem;
+            opacity: 0.75;
+            font-weight: 400;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .hero-stat-card {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 14px;
+            padding: 1rem 1.4rem;
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
+            transition: background 0.2s;
+        }
+
+        .hero-stat-card:hover {
+            background: rgba(255,255,255,0.18);
+        }
+
+        .hero-stat-card .stat-icon {
+            font-size: 1.6rem;
+            margin-bottom: 0.3rem;
+            display: block;
+        }
+
+        .hero-stat-card .stat-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: white;
+            line-height: 1;
+            margin-bottom: 0.15rem;
+        }
+
+        .hero-stat-card .stat-label {
+            font-size: 0.7rem;
+            opacity: 0.75;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .weather-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 50px;
+            padding: 0.4rem 1rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-top: 0.75rem;
+        }
+
+        .weather-temp {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        /* ======= CARDS ======= */
         .card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
             height: 100%;
             background: white;
         }
@@ -75,6 +193,16 @@
             color: #888;
             font-size: 0.85rem;
         }
+
+        /* Pulse animation for weather icon */
+        @keyframes pulse-soft {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+        .weather-icon-anim {
+            animation: pulse-soft 3s ease-in-out infinite;
+            display: inline-block;
+        }
     </style>
 </head>
 
@@ -82,20 +210,75 @@
 
     @include('layouts.navbar')
 
-    <div class="container my-5">
-        <div class="row g-4">
+    <div class="container my-4">
 
-            @if($currentWeather)
-            <div class="alert alert-danger" style="background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                <div class="d-flex align-items-center">
-                    <span style="margin-right: 10px;">📅</span>
-                    <strong>Hari ini: {{ \Carbon\Carbon::now()->format('d F Y') }} pukul {{ \Carbon\Carbon::now('Asia/Jakarta')->format('H:i') }} WIB</strong>
-                    <span style="margin-left: 20px;">
-                        ☁️ Kondisi: {{ $currentWeather['weather_desc'] }} ({{ $currentWeather['t'] }}°C)
-                    </span>
+        {{-- ===== HERO BANNER ===== --}}
+        <div class="hero-banner">
+            <div class="row align-items-center g-3">
+
+                {{-- Kiri: Sapaan & Tanggal --}}
+                <div class="col-md-5">
+                    <p class="hero-greeting">Selamat datang kembali 👋</p>
+                    <h2 class="hero-name">{{ Auth::user()->name }}</h2>
+                    <p class="hero-date mb-0">
+                        <i class="bi bi-calendar3 me-1"></i>
+                        {{ \Carbon\Carbon::now('Asia/Jakarta')->translatedFormat('l, d F Y') }}
+                        &nbsp;|&nbsp;
+                        <i class="bi bi-clock me-1"></i>
+                        {{ \Carbon\Carbon::now('Asia/Jakarta')->format('H:i') }} WIB
+                    </p>
+
+                    @if($currentWeather)
+                    @php
+                        $desc = strtolower($currentWeather['weather_desc'] ?? '');
+                        $weatherEmoji = '☀️';
+                        if (str_contains($desc, 'hujan lebat') || str_contains($desc, 'petir')) $weatherEmoji = '⛈️';
+                        elseif (str_contains($desc, 'hujan')) $weatherEmoji = '🌧️';
+                        elseif (str_contains($desc, 'mendung') || str_contains($desc, 'berawan')) $weatherEmoji = '☁️';
+                        elseif (str_contains($desc, 'kabut')) $weatherEmoji = '🌫️';
+                        elseif (str_contains($desc, 'cerah berawan')) $weatherEmoji = '⛅';
+                    @endphp
+                    <div class="weather-badge">
+                        <span class="weather-icon-anim">{{ $weatherEmoji }}</span>
+                        <span>{{ $currentWeather['weather_desc'] }}</span>
+                        <span class="weather-temp">{{ $currentWeather['t'] }}°C</span>
+                        <span style="opacity:0.6;">·</span>
+                        <span style="font-size:0.75rem; opacity:0.8;">Bandung</span>
+                    </div>
+                    @endif
                 </div>
+
+                {{-- Kanan: Stat Cards --}}
+                <div class="col-md-7">
+                    <div class="hero-stats">
+                        <div class="hero-stat-card">
+                            <span class="stat-icon">📋</span>
+                            <div class="stat-value">{{ $tasks->count() }}</div>
+                            <div class="stat-label">Tugas Aktif</div>
+                        </div>
+                        <div class="hero-stat-card">
+                            <span class="stat-icon">🏕️</span>
+                            <div class="stat-value">{{ $agendas->count() }}</div>
+                            <div class="stat-label">Agenda Outdoor</div>
+                        </div>
+                        <div class="hero-stat-card">
+                            <span class="stat-icon">🍽️</span>
+                            <div class="stat-value">{{ $meals->count() }}</div>
+                            <div class="stat-label">Meal Plan</div>
+                        </div>
+                        <div class="hero-stat-card">
+                            <span class="stat-icon">🙏</span>
+                            <div class="stat-value">{{ $AktivitasIbadah->count() }}</div>
+                            <div class="stat-label">Target Ibadah</div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-            @endif
+        </div>
+        {{-- ===== END HERO BANNER ===== --}}
+
+        <div class="row g-4">
 
             <div class="col-md-6">
                 <div class="card p-4 h-100">
@@ -136,7 +319,7 @@
                         <table class="table table-borderless align-middle mb-0">
                             <tbody>
                                 @forelse($agendas as $agenda)
-                                <tr class="border-bottom last:border-0">
+                                <tr class="border-bottom">
                                     <td class="ps-0 py-3">
                                         <div class="fw-bold text-dark mb-1">{{ $agenda->nama_kegiatan }}</div>
                                         <div class="text-muted small">
@@ -177,7 +360,7 @@
                     @if(isset($agendas) && $agendas->count() > 0)
                     @php $agendaPertama = $agendas->first(); @endphp
                     @if(str_contains(strtolower($agendaPertama->prediksi_cuaca), 'hujan') || str_contains(strtolower($agendaPertama->prediksi_cuaca), 'petir'))
-                    <div class="alert alert-warning d-flex align-items-center mt-auto mb-0 rounded-3 border-0 shadow-sm p-3" style="background-color: #FFF3E0; color: #E65100;">
+                    <div class="alert alert-warning d-flex align-items-center mt-3 mb-0 rounded-3 border-0 shadow-sm p-3" style="background-color: #FFF3E0; color: #E65100;">
                         <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
                         <div style="font-size: 0.85rem; line-height: 1.4;">
                             <strong>Waspada:</strong> Agenda terdekat diprediksi <u>{{ $agendaPertama->prediksi_cuaca }}</u>. Siapkan payung!
@@ -296,13 +479,11 @@
                             <tbody>
                                 @forelse($meals as $meal)
                                 <tr>
-                                <tr>
                                     <td>
                                         <div style="width: 120px;" class="fw-bold text-dark">
                                             {{ \Carbon\Carbon::parse($meal->planned_date)->format('d M Y') }}
                                         </div>
                                     </td>
-
                                     <td>
                                         <div style="width: 100px;" class="text-muted text-center">{{ $meal->meal_time }}</div>
                                     </td>
