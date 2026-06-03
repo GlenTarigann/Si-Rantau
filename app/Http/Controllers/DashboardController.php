@@ -28,13 +28,15 @@ class DashboardController extends Controller
 
         $agendas = [];
         try {
-            $agendas = AgendaOutdoor::where('waktu_mulai', '>=', now())
+            $agendas = AgendaOutdoor::where('user_id', $userId)
+                ->where('waktu_mulai', '>=', now())
                 ->orderBy('waktu_mulai', 'asc')->take(2)->get();
         } catch (\Exception $e) {
         }
 
         $today = Carbon::now()->format('Y-m-d');
-        $meals = \App\Models\Meal::orderBy('planned_date', 'asc')
+        $meals = \App\Models\Meal::where('user_id', $userId)
+            ->orderBy('planned_date', 'asc')
             ->take(5)
             ->get();
 
