@@ -13,7 +13,7 @@
     <style>
         :root {
             --primary-blue: #1A237E;
-            --bg-light: #f8f9fa;
+            --bg-light: #f4f7fe;
         }
 
         body {
