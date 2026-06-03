@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Meal;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -11,7 +12,9 @@ class MealPlanController extends Controller
 {
     public function index(Request $request)
     {
-        $meals = \App\Models\Meal::orderBy('planned_date', 'asc')->get();
+        $meals = \App\Models\Meal::where('user_id', Auth::id())
+                    ->orderBy('planned_date', 'asc')
+                    ->get();
         $search = $request->query('search');
 
         if ($search) {
@@ -51,7 +54,10 @@ class MealPlanController extends Controller
             'recipe_api_id' => 'nullable|string',
         ]);
 
-        Meal::create($request->all());
+        Meal::create(array_merge($request->only(['planned_date','meal_time','recipe_name','recipe_api_id']), [
+            'user_id' => Auth::id(),
+            'notes'   => $request->notes,
+        ]));
         return redirect()->back()->with('success', 'Meal Plan berhasil ditambahkan!');
     }
 
@@ -70,7 +76,7 @@ class MealPlanController extends Controller
             'notes'        => 'nullable|string',
         ]);
 
-        $meal = \App\Models\Meal::findOrFail($id);
+        $meal = \App\Models\Meal::where('user_id', Auth::id())->findOrFail($id);
         $meal->update($request->all());
 
         return redirect()->route('mealplan.index')->with('success', 'Meal Plan berhasil diperbarui!');
@@ -93,7 +99,7 @@ class MealPlanController extends Controller
 
     public function destroy($id)
     {
-        $meal = Meal::findOrFail($id);
+        $meal = Meal::where('user_id', Auth::id())->findOrFail($id);
         $meal->delete();
         return redirect()->back()->with('success', 'Meal Plan berhasil dihapus!');
     }
@@ -103,7 +109,8 @@ class MealPlanController extends Controller
         $start = $request->query('start_date');
         $end = $request->query('end_date');
 
-        $meals = Meal::whereBetween('planned_date', [$start, $end])
+        $meals = Meal::where('user_id', Auth::id())
+            ->whereBetween('planned_date', [$start, $end])
             ->orderBy('planned_date', 'asc')
             ->get();
 

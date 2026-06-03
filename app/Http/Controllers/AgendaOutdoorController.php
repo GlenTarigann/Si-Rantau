@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AgendaOutdoor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -12,9 +13,10 @@ class AgendaOutdoorController extends Controller
 {
     public function index()
     {
-        $agendas = AgendaOutdoor::orderBy('waktu_mulai', 'asc')->get();
-        
-        
+        $agendas = AgendaOutdoor::where('user_id', Auth::id())
+                    ->orderBy('waktu_mulai', 'asc')
+                    ->get();
+
         $currentWeather = $this->getCuacaSaatIni('32.73.02.1005');
 
         return view('agenda.index', compact('agendas', 'currentWeather'));
@@ -63,6 +65,7 @@ class AgendaOutdoorController extends Controller
         $hasilCuaca = $this->getCuacaBaruJson($request->lokasi_kota, $request->waktu_mulai);
 
         AgendaOutdoor::create([
+            'user_id'         => Auth::id(),
             'nama_kegiatan'   => $request->nama_kegiatan,
             'lokasi_kota'     => $request->lokasi_kota,
             'waktu_mulai'     => $request->waktu_mulai,
@@ -83,8 +86,8 @@ class AgendaOutdoorController extends Controller
 
     public function edit($id)
     {
-        $agendaEdit = AgendaOutdoor::findOrFail($id);
-        $agendas = AgendaOutdoor::orderBy('waktu_mulai', 'asc')->get();
+        $agendaEdit = AgendaOutdoor::where('user_id', Auth::id())->findOrFail($id);
+        $agendas = AgendaOutdoor::where('user_id', Auth::id())->orderBy('waktu_mulai', 'asc')->get();
         return view('agenda.edit', compact('agendaEdit', 'agendas'));
     }
 
@@ -98,7 +101,7 @@ class AgendaOutdoorController extends Controller
 
         $hasilCuaca = $this->getCuacaBaruJson($request->lokasi_kota, $request->waktu_mulai);
 
-        $agenda = AgendaOutdoor::findOrFail($id);
+        $agenda = AgendaOutdoor::where('user_id', Auth::id())->findOrFail($id);
         $agenda->update([
             'nama_kegiatan'   => $request->nama_kegiatan,
             'lokasi_kota'     => $request->lokasi_kota,
@@ -117,13 +120,15 @@ class AgendaOutdoorController extends Controller
 
     public function destroy($id)
     {
-        AgendaOutdoor::findOrFail($id)->delete();
+        AgendaOutdoor::where('user_id', Auth::id())->findOrFail($id)->delete();
         return redirect()->route('agenda.index')->with('success', 'Rencana dihapus.');
     }
 
     public function cetakPdf()
     {
-        $agendas = AgendaOutdoor::orderBy('waktu_mulai', 'asc')->get();
+        $agendas = AgendaOutdoor::where('user_id', Auth::id())
+                    ->orderBy('waktu_mulai', 'asc')
+                    ->get();
 
         $pdf = Pdf::loadView('agenda.cetak_pdf', compact('agendas'));
         

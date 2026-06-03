@@ -17,6 +17,7 @@ class AgendaOutdoor extends Model
 
     // 3. Kolom mana saja yang boleh diisi (Mass Assignment)
     protected $fillable = [
+        'user_id',
         'nama_kegiatan',
         'lokasi_kota',
         'waktu_mulai',
