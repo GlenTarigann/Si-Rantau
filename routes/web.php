@@ -33,6 +33,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('agenda/cetak_pdf', [AgendaOutdoorController::class, 'cetakPdf'])->name('agenda.cetak');
     Route::resource('agenda', AgendaOutdoorController::class);
 
+    // A1. AJAX Wilayah (untuk cascading dropdown)
+    Route::get('wilayah/provinsi',          [AgendaOutdoorController::class, 'getProvinsi'])->name('wilayah.provinsi');
+    Route::get('wilayah/kabupaten/{prov}',  [AgendaOutdoorController::class, 'getKabupaten'])->name('wilayah.kabupaten');
+    Route::get('wilayah/kecamatan/{kab}',   [AgendaOutdoorController::class, 'getKecamatan'])->name('wilayah.kecamatan');
+    Route::get('wilayah/kelurahan/{kec}',   [AgendaOutdoorController::class, 'getKelurahan'])->name('wilayah.kelurahan');
+
     // B. MANAJEMEN TUGAS
     Route::get('/tugas/cetak', [TugasController::class, 'exportPdf'])->name('tugas.export');
     Route::resource('tugas', TugasController::class)->except(['show']);

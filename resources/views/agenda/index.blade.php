@@ -459,6 +459,60 @@
         .delay-1 { animation-delay: .08s; }
         .delay-2 { animation-delay: .16s; }
         .delay-3 { animation-delay: .24s; }
+
+        /* ===== CASCADING DROPDOWN ===== */
+        .wilayah-step {
+            position: relative;
+        }
+        .wilayah-step .form-select:disabled {
+            background-color: #f0f2f8;
+            cursor: not-allowed;
+            opacity: 0.65;
+        }
+        .loading-select {
+            position: relative;
+        }
+        .loading-select::after {
+            content: '';
+            position: absolute;
+            right: 2.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--primary-light);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin .6s linear infinite;
+            pointer-events: none;
+        }
+        @keyframes spin {
+            to { transform: translateY(-50%) rotate(360deg); }
+        }
+        .location-preview {
+            background: var(--primary-light);
+            border: 1px dashed var(--primary);
+            border-radius: 8px;
+            padding: .6rem .9rem;
+            font-size: 0.8rem;
+            color: var(--primary);
+            margin-top: .5rem;
+            display: none;
+        }
+        .location-preview.show { display: flex; align-items: center; gap: .4rem; }
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+            margin-right: 4px;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 
@@ -602,19 +656,54 @@
                                 @enderror
                             </div>
 
-                            {{-- Lokasi --}}
-                            <div class="mb-3">
-                                <label class="form-label">Lokasi Kota</label>
-                                <select name="lokasi_kota" class="form-select @error('lokasi_kota') is-invalid @enderror">
-                                    <option value="" disabled selected>-- Pilih Lokasi --</option>
-                                    <option value="Bandung"    {{ old('lokasi_kota') == 'Bandung'    ? 'selected' : '' }}>📍 Bandung</option>
-                                    <option value="Jakarta"    {{ old('lokasi_kota') == 'Jakarta'    ? 'selected' : '' }}>📍 Jakarta</option>
-                                    <option value="Yogyakarta" {{ old('lokasi_kota') == 'Yogyakarta' ? 'selected' : '' }}>📍 Yogyakarta</option>
-                                    <option value="Surabaya"   {{ old('lokasi_kota') == 'Surabaya'   ? 'selected' : '' }}>📍 Surabaya</option>
+                            {{-- Lokasi: Cascading Dropdown 4 level --}}
+                            {{-- Hidden fields yang akan dikirim ke server --}}
+                            <input type="hidden" name="adm4_code"    id="adm4_code">
+                            <input type="hidden" name="lokasi_label" id="lokasi_label">
+
+                            <div class="mb-2 wilayah-step">
+                                <label class="form-label">
+                                    <span class="step-badge">1</span> Provinsi
+                                </label>
+                                <select id="sel-provinsi" class="form-select @error('adm4_code') is-invalid @enderror">
+                                    <option value="">-- Memuat daftar provinsi... --</option>
                                 </select>
-                                @error('lokasi_kota')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                            </div>
+
+                            <div class="mb-2 wilayah-step">
+                                <label class="form-label">
+                                    <span class="step-badge">2</span> Kabupaten / Kota
+                                </label>
+                                <select id="sel-kabupaten" class="form-select" disabled>
+                                    <option value="">-- Pilih provinsi dulu --</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-2 wilayah-step">
+                                <label class="form-label">
+                                    <span class="step-badge">3</span> Kecamatan
+                                </label>
+                                <select id="sel-kecamatan" class="form-select" disabled>
+                                    <option value="">-- Pilih kab/kota dulu --</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3 wilayah-step">
+                                <label class="form-label">
+                                    <span class="step-badge">4</span> Kelurahan / Desa
+                                </label>
+                                <select id="sel-kelurahan" class="form-select" disabled>
+                                    <option value="">-- Pilih kecamatan dulu --</option>
+                                </select>
+                                @error('adm4_code')
+                                    <div class="invalid-feedback d-block">Lokasi wajib dipilih hingga kelurahan/desa.</div>
                                 @enderror
+
+                                {{-- Preview lokasi terpilih --}}
+                                <div class="location-preview" id="location-preview">
+                                    <i class="bi bi-geo-alt-fill"></i>
+                                    <span id="location-preview-text"></span>
+                                </div>
                             </div>
 
                             {{-- Waktu --}}
@@ -739,7 +828,9 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
+        // ================================================================
         // Live clock
+        // ================================================================
         function updateClock() {
             const now = new Date();
             const pad = n => String(n).padStart(2, '0');
@@ -748,7 +839,9 @@
         }
         setInterval(updateClock, 1000);
 
+        // ================================================================
         // Flatpickr
+        // ================================================================
         flatpickr("#waktu_picker", {
             enableTime: true,
             dateFormat: "Y-m-d H:i",
@@ -758,6 +851,145 @@
             altInput: true,
             altFormat: "j F Y, H:i"
         });
+
+        // ================================================================
+        // CASCADING DROPDOWN – Provinsi → Kab/Kota → Kecamatan → Kelurahan
+        // ================================================================
+        const ROUTES = {
+            provinsi:  "{{ route('wilayah.provinsi') }}",
+            kabupaten: "{{ url('wilayah/kabupaten') }}/",
+            kecamatan: "{{ url('wilayah/kecamatan') }}/",
+            kelurahan: "{{ url('wilayah/kelurahan') }}/",
+        };
+
+        const selProv = document.getElementById('sel-provinsi');
+        const selKab  = document.getElementById('sel-kabupaten');
+        const selKec  = document.getElementById('sel-kecamatan');
+        const selKel  = document.getElementById('sel-kelurahan');
+        const hidAdm4  = document.getElementById('adm4_code');
+        const hidLabel = document.getElementById('lokasi_label');
+        const preview  = document.getElementById('location-preview');
+        const prevText = document.getElementById('location-preview-text');
+
+        // Helper: Convert emsifa ID → BMKG adm4 format
+        // e.g. "3273020001" → "32.73.02.0001"
+        function toAdm4(id) {
+            const s = String(id).padStart(10, '0');
+            return `${s.slice(0,2)}.${s.slice(2,4)}.${s.slice(4,6)}.${s.slice(6,10)}`;
+        }
+
+        // Helper: Set loading state on a select
+        function setLoading(sel, isLoading) {
+            const wrap = sel.closest('.wilayah-step');
+            if (isLoading) {
+                wrap.classList.add('loading-select');
+                sel.disabled = true;
+            } else {
+                wrap.classList.remove('loading-select');
+            }
+        }
+
+        // Helper: Reset a select to placeholder
+        function resetSelect(sel, placeholder) {
+            sel.innerHTML = `<option value="">${placeholder}</option>`;
+            sel.disabled = true;
+        }
+
+        // Helper: Fetch wilayah and populate select
+        async function loadWilayah(url, sel, placeholder) {
+            setLoading(sel, true);
+            try {
+                const res  = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                const data = await res.json();
+                sel.innerHTML = `<option value="">${placeholder}</option>`;
+                data.forEach(item => {
+                    const opt  = document.createElement('option');
+                    opt.value  = item.id;
+                    opt.textContent = toTitleCase(item.name);
+                    sel.appendChild(opt);
+                });
+                sel.disabled = false;
+            } catch (err) {
+                sel.innerHTML = `<option value="">Gagal memuat data</option>`;
+                sel.disabled = false;
+                console.error('Wilayah API error:', err);
+            } finally {
+                setLoading(sel, false);
+            }
+        }
+
+        function toTitleCase(str) {
+            return str.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
+        }
+
+        function updatePreview() {
+            const prov = selProv.options[selProv.selectedIndex];
+            const kab  = selKab.options[selKab.selectedIndex];
+            const kec  = selKec.options[selKec.selectedIndex];
+            const kel  = selKel.options[selKel.selectedIndex];
+
+            if (selKel.value && kel) {
+                const label = `${kel.textContent}, ${kec?.textContent ?? ''}, ${kab?.textContent ?? ''}, ${prov?.textContent ?? ''}`;
+                prevText.textContent = label;
+                preview.classList.add('show');
+                hidLabel.value = label;
+
+                // Build adm4 from kelurahan id
+                hidAdm4.value = toAdm4(selKel.value);
+            } else {
+                preview.classList.remove('show');
+                hidLabel.value = '';
+                hidAdm4.value  = '';
+            }
+        }
+
+        // ---- Event Listeners ----
+
+        // 1. Provinsi changed → load kabupaten
+        selProv.addEventListener('change', () => {
+            resetSelect(selKab, '-- Pilih kabupaten/kota --');
+            resetSelect(selKec, '-- Pilih kecamatan --');
+            resetSelect(selKel, '-- Pilih kelurahan/desa --');
+            hidAdm4.value  = '';
+            hidLabel.value = '';
+            preview.classList.remove('show');
+
+            if (selProv.value) {
+                loadWilayah(ROUTES.kabupaten + selProv.value, selKab, '-- Pilih kabupaten/kota --');
+            }
+        });
+
+        // 2. Kabupaten changed → load kecamatan
+        selKab.addEventListener('change', () => {
+            resetSelect(selKec, '-- Pilih kecamatan --');
+            resetSelect(selKel, '-- Pilih kelurahan/desa --');
+            hidAdm4.value  = '';
+            hidLabel.value = '';
+            preview.classList.remove('show');
+
+            if (selKab.value) {
+                loadWilayah(ROUTES.kecamatan + selKab.value, selKec, '-- Pilih kecamatan --');
+            }
+        });
+
+        // 3. Kecamatan changed → load kelurahan
+        selKec.addEventListener('change', () => {
+            resetSelect(selKel, '-- Pilih kelurahan/desa --');
+            hidAdm4.value  = '';
+            hidLabel.value = '';
+            preview.classList.remove('show');
+
+            if (selKec.value) {
+                loadWilayah(ROUTES.kelurahan + selKec.value, selKel, '-- Pilih kelurahan/desa --');
+            }
+        });
+
+        // 4. Kelurahan changed → update hidden fields
+        selKel.addEventListener('change', updatePreview);
+
+        // ---- Initial load: fetch provinces on page load ----
+        loadWilayah(ROUTES.provinsi, selProv, '-- Pilih provinsi --');
+
     </script>
 </body>
 </html>
