@@ -657,15 +657,16 @@
                             </div>
 
                             {{-- Lokasi: Cascading Dropdown 4 level --}}
-                            {{-- Hidden fields yang akan dikirim ke server --}}
-                            <input type="hidden" name="adm4_code"    id="adm4_code">
-                            <input type="hidden" name="lokasi_label" id="lokasi_label">
+                            {{-- Hidden fields dikirim ke server --}}
+                            <input type="hidden" name="kec_id"       id="kec_id">       {{-- emsifa kecamatan ID --}}
+                            <input type="hidden" name="kab_id"       id="kab_id">       {{-- emsifa kabupaten ID --}}
+                            <input type="hidden" name="lokasi_label" id="lokasi_label"> {{-- label tampilan --}}
 
                             <div class="mb-2 wilayah-step">
                                 <label class="form-label">
                                     <span class="step-badge">1</span> Provinsi
                                 </label>
-                                <select id="sel-provinsi" class="form-select @error('adm4_code') is-invalid @enderror">
+                                <select id="sel-provinsi" class="form-select @error('kec_id') is-invalid @enderror">
                                     <option value="">-- Memuat daftar provinsi... --</option>
                                 </select>
                             </div>
@@ -691,12 +692,13 @@
                             <div class="mb-3 wilayah-step">
                                 <label class="form-label">
                                     <span class="step-badge">4</span> Kelurahan / Desa
+                                    <small style="font-size:.65rem;color:var(--text-muted);text-transform:none;font-weight:400;letter-spacing:0;">(opsional, untuk label lokasi)</small>
                                 </label>
                                 <select id="sel-kelurahan" class="form-select" disabled>
                                     <option value="">-- Pilih kecamatan dulu --</option>
                                 </select>
-                                @error('adm4_code')
-                                    <div class="invalid-feedback d-block">Lokasi wajib dipilih hingga kelurahan/desa.</div>
+                                @error('kec_id')
+                                    <div class="invalid-feedback d-block">Harap pilih minimal hingga tingkat kecamatan.</div>
                                 @enderror
 
                                 {{-- Preview lokasi terpilih --}}
@@ -862,95 +864,110 @@
             kelurahan: "{{ url('wilayah/kelurahan') }}/",
         };
 
-        const selProv = document.getElementById('sel-provinsi');
-        const selKab  = document.getElementById('sel-kabupaten');
-        const selKec  = document.getElementById('sel-kecamatan');
-        const selKel  = document.getElementById('sel-kelurahan');
-        const hidAdm4  = document.getElementById('adm4_code');
+        const selProv  = document.getElementById('sel-provinsi');
+        const selKab   = document.getElementById('sel-kabupaten');
+        const selKec   = document.getElementById('sel-kecamatan');
+        const selKel   = document.getElementById('sel-kelurahan');
+        const hidKecId = document.getElementById('kec_id');
+        const hidKabId = document.getElementById('kab_id');
         const hidLabel = document.getElementById('lokasi_label');
         const preview  = document.getElementById('location-preview');
         const prevText = document.getElementById('location-preview-text');
 
-        // Helper: Convert emsifa ID → BMKG adm4 format
-        // e.g. "3273020001" → "32.73.02.0001"
-        function toAdm4(id) {
-            const s = String(id).padStart(10, '0');
-            return `${s.slice(0,2)}.${s.slice(2,4)}.${s.slice(4,6)}.${s.slice(6,10)}`;
-        }
-
-        // Helper: Set loading state on a select
-        function setLoading(sel, isLoading) {
-            const wrap = sel.closest('.wilayah-step');
-            if (isLoading) {
-                wrap.classList.add('loading-select');
-                sel.disabled = true;
-            } else {
-                wrap.classList.remove('loading-select');
-            }
-        }
-
-        // Helper: Reset a select to placeholder
+        // ================================================================
+        // HELPER: Reset a select element
+        // ================================================================
         function resetSelect(sel, placeholder) {
             sel.innerHTML = `<option value="">${placeholder}</option>`;
             sel.disabled = true;
         }
 
-        // Helper: Fetch wilayah and populate select
+        // ================================================================
+        // HELPER: Set loading spinner on a wilayah-step wrapper
+        // ================================================================
+        function setLoading(sel, isLoading) {
+            const wrap = sel.closest('.wilayah-step');
+            if (wrap) wrap.classList.toggle('loading-select', isLoading);
+            sel.disabled = isLoading;
+        }
+
+        // ================================================================
+        // HELPER: Fetch wilayah list and populate a select
+        // ================================================================
         async function loadWilayah(url, sel, placeholder) {
             setLoading(sel, true);
             try {
                 const res  = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const data = await res.json();
                 sel.innerHTML = `<option value="">${placeholder}</option>`;
                 data.forEach(item => {
-                    const opt  = document.createElement('option');
-                    opt.value  = item.id;
+                    const opt = document.createElement('option');
+                    opt.value = item.id;
                     opt.textContent = toTitleCase(item.name);
                     sel.appendChild(opt);
                 });
-                sel.disabled = false;
             } catch (err) {
-                sel.innerHTML = `<option value="">Gagal memuat data</option>`;
-                sel.disabled = false;
+                sel.innerHTML = `<option value="">⚠ Gagal memuat data</option>`;
                 console.error('Wilayah API error:', err);
             } finally {
                 setLoading(sel, false);
             }
         }
 
+        // ================================================================
+        // HELPER: Title case
+        // ================================================================
         function toTitleCase(str) {
+            if (!str) return str;
             return str.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
         }
 
-        function updatePreview() {
-            const prov = selProv.options[selProv.selectedIndex];
-            const kab  = selKab.options[selKab.selectedIndex];
-            const kec  = selKec.options[selKec.selectedIndex];
-            const kel  = selKel.options[selKel.selectedIndex];
-
-            if (selKel.value && kel) {
-                const label = `${kel.textContent}, ${kec?.textContent ?? ''}, ${kab?.textContent ?? ''}, ${prov?.textContent ?? ''}`;
-                prevText.textContent = label;
-                preview.classList.add('show');
-                hidLabel.value = label;
-
-                // Build adm4 from kelurahan id
-                hidAdm4.value = toAdm4(selKel.value);
-            } else {
-                preview.classList.remove('show');
+        // ================================================================
+        // UPDATE PREVIEW & HIDDEN FIELDS
+        // Dipanggil setiap kali kecamatan atau kelurahan berubah.
+        // kec_id dan kab_id di-set saat kecamatan dipilih (wajib).
+        // lokasi_label mencakup kelurahan jika dipilih (opsional).
+        // ================================================================
+        function updateAfterKecamatan() {
+            if (!selKec.value || !selKab.value) {
+                hidKecId.value = '';
+                hidKabId.value = '';
                 hidLabel.value = '';
-                hidAdm4.value  = '';
+                preview.classList.remove('show');
+                return;
             }
+
+            hidKecId.value = selKec.value;
+            hidKabId.value = selKab.value;
+
+            // Bangun label dari kecamatan ke atas
+            const provName = selProv.options[selProv.selectedIndex]?.textContent ?? '';
+            const kabName  = selKab.options[selKab.selectedIndex]?.textContent ?? '';
+            const kecName  = selKec.options[selKec.selectedIndex]?.textContent ?? '';
+
+            // Jika kelurahan sudah dipilih, sertakan dalam label
+            const kelName = selKel.value ? (selKel.options[selKel.selectedIndex]?.textContent ?? '') : '';
+            const label = kelName
+                ? `${kelName}, ${kecName}, ${kabName}, ${provName}`
+                : `${kecName}, ${kabName}, ${provName}`;
+
+            hidLabel.value = label;
+            prevText.textContent = label;
+            preview.classList.add('show');
         }
 
-        // ---- Event Listeners ----
+        // ================================================================
+        // EVENT LISTENERS
+        // ================================================================
 
-        // 1. Provinsi changed → load kabupaten
+        // 1. Provinsi dipilih → load Kabupaten
         selProv.addEventListener('change', () => {
             resetSelect(selKab, '-- Pilih kabupaten/kota --');
             resetSelect(selKec, '-- Pilih kecamatan --');
             resetSelect(selKel, '-- Pilih kelurahan/desa --');
-            hidAdm4.value  = '';
+            hidKecId.value = '';
+            hidKabId.value = '';
             hidLabel.value = '';
             preview.classList.remove('show');
 
@@ -959,11 +976,12 @@
             }
         });
 
-        // 2. Kabupaten changed → load kecamatan
+        // 2. Kabupaten dipilih → load Kecamatan
         selKab.addEventListener('change', () => {
             resetSelect(selKec, '-- Pilih kecamatan --');
             resetSelect(selKel, '-- Pilih kelurahan/desa --');
-            hidAdm4.value  = '';
+            hidKecId.value = '';
+            hidKabId.value = '';
             hidLabel.value = '';
             preview.classList.remove('show');
 
@@ -972,24 +990,39 @@
             }
         });
 
-        // 3. Kecamatan changed → load kelurahan
+        // 3. Kecamatan dipilih → load Kelurahan (opsional) + update hidden fields
         selKec.addEventListener('change', () => {
-            resetSelect(selKel, '-- Pilih kelurahan/desa --');
-            hidAdm4.value  = '';
-            hidLabel.value = '';
-            preview.classList.remove('show');
+            resetSelect(selKel, '-- Pilih kelurahan/desa (opsional) --');
+            updateAfterKecamatan();  // ← Set kec_id & kab_id di sini!
 
             if (selKec.value) {
-                loadWilayah(ROUTES.kelurahan + selKec.value, selKel, '-- Pilih kelurahan/desa --');
+                loadWilayah(ROUTES.kelurahan + selKec.value, selKel, '-- Pilih kelurahan/desa (opsional) --');
             }
         });
 
-        // 4. Kelurahan changed → update hidden fields
-        selKel.addEventListener('change', updatePreview);
+        // 4. Kelurahan dipilih → perbarui label saja (kec_id sudah di-set)
+        selKel.addEventListener('change', updateAfterKecamatan);
 
-        // ---- Initial load: fetch provinces on page load ----
+        // ================================================================
+        // FORM VALIDATION sebelum submit
+        // ================================================================
+        document.querySelector('form[action*="agenda"]')?.addEventListener('submit', function(e) {
+            if (!hidKecId.value || !hidKabId.value) {
+                e.preventDefault();
+                // Highlight dropdown kecamatan
+                selProv.classList.toggle('is-invalid', !selProv.value);
+                selKab.classList.toggle('is-invalid', !selKab.value);
+                selKec.classList.toggle('is-invalid', !selKec.value);
+                alert('Harap pilih lokasi minimal hingga tingkat Kecamatan terlebih dahulu.');
+            }
+        });
+
+        // ================================================================
+        // INITIAL LOAD: Muat daftar Provinsi saat halaman dibuka
+        // ================================================================
         loadWilayah(ROUTES.provinsi, selProv, '-- Pilih provinsi --');
 
     </script>
 </body>
 </html>
+

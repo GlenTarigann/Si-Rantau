@@ -17,29 +17,37 @@ class AgendaOutdoorController extends Controller
     private const WILAYAH_BASE = 'https://www.emsifa.com/api-wilayah-indonesia/api';
 
     // ====================================================================
-    // Konversi ID emsifa → kode adm4 BMKG
-    // Contoh: "3273020001"  →  "32.73.02.0001"
-    // Contoh: "327302"      →  "32.73.02"
+    // Build kode adm4 BMKG dari kecamatan emsifa ID + kabupaten ID
+    //
+    // Penjelasan konversi:
+    //   emsifa kecamatan ID: "3273020"  (7 digit: prov[2]+kab[2]+kec[3])
+    //   BMKG adm3: "32.73.02"           (6 digit dengan titik: prov.kab.kec)
+    //   Kecamatan digit ke-5 & ke-6 dari ID = kode kecamatan BMKG (2 digit)
+    //
+    //   Kota (urban):    kode kab bagian kedua >= 71  → suffix "1001"
+    //   Kabupaten (rural): kode kab bagian kedua < 71 → suffix "2001"
+    //
+    // Contoh:
+    //   kecId=3273020, kabId=3273 → kabCode=73 (>=71) → "32.73.02.1001" ✓
+    //   kecId=3204170, kabId=3204 → kabCode=4  (<71)  → "32.04.17.2001" ✓
     // ====================================================================
-    private function toAdm4(string $id): string
+    private function buildProbeAdm4(string $kecId, string $kabId): string
     {
-        $id = str_pad($id, 10, '0', STR_PAD_LEFT);
-        return implode('.', [
-            substr($id, 0, 2),
-            substr($id, 2, 2),
-            substr($id, 4, 2),
-            substr($id, 6, 4),
-        ]);
-    }
+        $kecId = str_pad($kecId, 7, '0', STR_PAD_LEFT);
+        $kabId = str_pad($kabId, 4, '0', STR_PAD_LEFT);
 
-    private function toAdm3(string $id): string
-    {
-        $id = str_pad($id, 7, '0', STR_PAD_LEFT);
-        return implode('.', [
-            substr($id, 0, 2),
-            substr($id, 2, 2),
-            substr($id, 4, 2),
-        ]);
+        // Bangun adm3 dari 6 digit pertama kecamatan ID
+        $adm3 = sprintf('%s.%s.%s',
+            substr($kecId, 0, 2),
+            substr($kecId, 2, 2),
+            substr($kecId, 4, 2)
+        );
+
+        // Deteksi Kota (kode >= 71) vs Kabupaten (kode < 71)
+        $kabCode = (int) substr($kabId, 2, 2);
+        $suffix  = $kabCode >= 71 ? '1001' : '2001';
+
+        return "{$adm3}.{$suffix}";
     }
 
     // ====================================================================
@@ -54,13 +62,14 @@ class AgendaOutdoorController extends Controller
                         ->get(self::WILAYAH_BASE . '/provinces.json');
             return response()->json($resp->json());
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Illuminate\Support\Facades\Log::error('Wilayah API provinsi: ' . $e->getMessage());
+            return response()->json(['error' => 'Gagal memuat data provinsi'], 500);
         }
     }
 
     // ====================================================================
-    // AJAX – Daftar Kabupaten/Kota berdasarkan ID Provinsi
-    // GET /wilayah/kabupaten/{prov}   e.g. prov = "32"
+    // AJAX – Daftar Kabupaten/Kota
+    // GET /wilayah/kabupaten/{prov}
     // ====================================================================
     public function getKabupaten($provId)
     {
@@ -70,13 +79,14 @@ class AgendaOutdoorController extends Controller
                         ->get(self::WILAYAH_BASE . "/regencies/{$provId}.json");
             return response()->json($resp->json());
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Illuminate\Support\Facades\Log::error('Wilayah API kabupaten: ' . $e->getMessage());
+            return response()->json(['error' => 'Gagal memuat data kabupaten'], 500);
         }
     }
 
     // ====================================================================
-    // AJAX – Daftar Kecamatan berdasarkan ID Kabupaten
-    // GET /wilayah/kecamatan/{kab}   e.g. kab = "3273"
+    // AJAX – Daftar Kecamatan
+    // GET /wilayah/kecamatan/{kab}
     // ====================================================================
     public function getKecamatan($kabId)
     {
@@ -86,13 +96,14 @@ class AgendaOutdoorController extends Controller
                         ->get(self::WILAYAH_BASE . "/districts/{$kabId}.json");
             return response()->json($resp->json());
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Illuminate\Support\Facades\Log::error('Wilayah API kecamatan: ' . $e->getMessage());
+            return response()->json(['error' => 'Gagal memuat data kecamatan'], 500);
         }
     }
 
     // ====================================================================
-    // AJAX – Daftar Kelurahan/Desa berdasarkan ID Kecamatan
-    // GET /wilayah/kelurahan/{kec}   e.g. kec = "3273020"
+    // AJAX – Daftar Kelurahan/Desa
+    // GET /wilayah/kelurahan/{kec}
     // ====================================================================
     public function getKelurahan($kecId)
     {
@@ -102,7 +113,8 @@ class AgendaOutdoorController extends Controller
                         ->get(self::WILAYAH_BASE . "/villages/{$kecId}.json");
             return response()->json($resp->json());
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Illuminate\Support\Facades\Log::error('Wilayah API kelurahan: ' . $e->getMessage());
+            return response()->json(['error' => 'Gagal memuat data kelurahan'], 500);
         }
     }
 
@@ -115,7 +127,7 @@ class AgendaOutdoorController extends Controller
                     ->orderBy('waktu_mulai', 'asc')
                     ->get();
 
-        $currentWeather = $this->getCuacaSaatIni('32.73.02.1005');
+        $currentWeather = $this->getCuacaSaatIni('32.73.02.1001');
 
         return view('agenda.index', compact('agendas', 'currentWeather'));
     }
@@ -125,20 +137,25 @@ class AgendaOutdoorController extends Controller
     // ====================================================================
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'nama_kegiatan' => 'required|string|max:255',
-            'adm4_code'     => 'required|string',   // kode BMKG adm4
-            'lokasi_label'  => 'required|string',   // label lengkap yang tampil
+            'kec_id'        => 'required|string',   // emsifa kecamatan ID
+            'kab_id'        => 'required|string',   // emsifa kabupaten ID
+            'lokasi_label'  => 'required|string|max:500',
             'waktu_mulai'   => 'required|date',
         ]);
 
-        $hasilCuaca = $this->getCuacaByAdm4($request->adm4_code, $request->waktu_mulai);
+        // Build kode adm4 BMKG dari kecamatan + kabupaten (lebih reliable dari konversi kelurahan)
+        $adm4 = $this->buildProbeAdm4($validated['kec_id'], $validated['kab_id']);
+
+        // Ambil prediksi cuaca
+        $hasilCuaca = $this->getCuacaByAdm4($adm4, $validated['waktu_mulai']);
 
         AgendaOutdoor::create([
             'user_id'         => Auth::id(),
-            'nama_kegiatan'   => $request->nama_kegiatan,
-            'lokasi_kota'     => $request->lokasi_label,
-            'waktu_mulai'     => $request->waktu_mulai,
+            'nama_kegiatan'   => $validated['nama_kegiatan'],
+            'lokasi_kota'     => $validated['lokasi_label'],
+            'waktu_mulai'     => $validated['waktu_mulai'],
             'prediksi_cuaca'  => $hasilCuaca,
             'status_kegiatan' => 'Scheduled',
         ]);
@@ -148,11 +165,11 @@ class AgendaOutdoorController extends Controller
 
         if ($isBadWeather) {
             return redirect()->route('agenda.index')
-                ->with('warning', "Rencana disimpan. PERINGATAN: Cuaca diprediksi '$hasilCuaca'. Siapkan payung!");
+                ->with('warning', "Rencana disimpan. ⚠️ Cuaca diprediksi '$hasilCuaca'. Siapkan payung!");
         }
 
         return redirect()->route('agenda.index')
-            ->with('success', "Rencana disimpan. Cuaca aman: $hasilCuaca.");
+            ->with('success', "Rencana berhasil disimpan! Cuaca: $hasilCuaca.");
     }
 
     // ====================================================================
@@ -176,14 +193,17 @@ class AgendaOutdoorController extends Controller
             'waktu_mulai'   => 'required|date',
         ]);
 
-        // Cek apakah pakai sistem baru (adm4_code) atau lama (lokasi_kota langsung)
-        if ($request->filled('adm4_code')) {
-            $hasilCuaca = $this->getCuacaByAdm4($request->adm4_code, $request->waktu_mulai);
-            $lokasiLabel = $request->lokasi_label ?? $request->lokasi_kota;
+        // Cek apakah update menggunakan sistem baru (kec_id) atau lama
+        if ($request->filled('kec_id') && $request->filled('kab_id')) {
+            $adm4       = $this->buildProbeAdm4($request->kec_id, $request->kab_id);
+            $lokasiLabel = $request->filled('lokasi_label') ? $request->lokasi_label : $request->lokasi_kota;
         } else {
-            $hasilCuaca  = $this->getCuacaBaruJson($request->lokasi_kota, $request->waktu_mulai);
+            // Backward compat: gunakan kode lama hardcoded
+            $adm4       = $this->legacyKotaToAdm4($request->lokasi_kota);
             $lokasiLabel = $request->lokasi_kota;
         }
+
+        $hasilCuaca = $this->getCuacaByAdm4($adm4, $request->waktu_mulai);
 
         $agenda = AgendaOutdoor::where('user_id', Auth::id())->findOrFail($id);
         $agenda->update([
@@ -198,7 +218,7 @@ class AgendaOutdoorController extends Controller
 
         if ($isBadWeather) {
             return redirect()->route('agenda.index')
-                ->with('warning', "Update berhasil. Waspada cuaca '$hasilCuaca'!");
+                ->with('warning', "Update berhasil. ⚠️ Waspada cuaca '$hasilCuaca'!");
         }
 
         return redirect()->route('agenda.index')->with('success', 'Update berhasil.');
@@ -236,50 +256,70 @@ class AgendaOutdoorController extends Controller
     }
 
     // ====================================================================
-    // PRIVATE – Ambil cuaca berdasarkan kode adm4 BMKG (baru)
+    // PRIVATE – Ambil cuaca berdasarkan kode adm4 BMKG
     // ====================================================================
     private function getCuacaByAdm4(string $adm4, string $waktuInput): string
     {
+        // Validasi format adm4 sebelum memanggil API
+        if (empty($adm4) || !preg_match('/^\d{2}\.\d{2}\.\d{2}\.\d{4}$/', $adm4)) {
+            \Illuminate\Support\Facades\Log::warning("Invalid adm4 format: {$adm4}");
+            return 'Lokasi Tidak Valid';
+        }
+
         try {
             $url = "https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4={$adm4}";
-            \Illuminate\Support\Facades\Log::info("BMKG adm4 Request: {$url}");
+            \Illuminate\Support\Facades\Log::info("BMKG Request: {$url}");
 
-            $response = Http::withOptions(['verify' => false])->timeout(15)->get($url);
+            $response = Http::withOptions(['verify' => false])
+                            ->timeout(15)
+                            ->get($url);
+
+            if ($response->status() === 404) {
+                // Coba suffix alternatif: kalau 1001 gagal coba 2001, dan sebaliknya
+                $alt = str_replace('.1001', '.2001', $adm4);
+                if ($alt === $adm4) {
+                    $alt = str_replace('.2001', '.1001', $adm4);
+                }
+
+                \Illuminate\Support\Facades\Log::info("BMKG 404, retrying with: {$alt}");
+                $response = Http::withOptions(['verify' => false])
+                                ->timeout(15)
+                                ->get("https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4={$alt}");
+            }
 
             if ($response->failed()) {
-                return "Gagal API ({$response->status()})";
+                return "Cuaca Tidak Tersedia ({$response->status()})";
             }
 
             $data = $response->json();
 
             if (!isset($data['data'][0]['cuaca'])) {
-                return "Data Cuaca Tidak Tersedia";
+                return 'Data Cuaca Kosong';
             }
 
             return $this->findClosestWeather($data['data'][0]['cuaca'], $waktuInput);
 
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            \Illuminate\Support\Facades\Log::error("BMKG ConnectionException: " . $e->getMessage());
+            return 'Timeout – Cek Koneksi';
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("BMKG Error: " . $e->getMessage());
-            return "Gangguan Koneksi API";
+            return 'Gangguan Koneksi API';
         }
     }
 
     // ====================================================================
-    // PRIVATE – Ambil cuaca berdasarkan nama kota (lama – backward compat)
+    // PRIVATE – Backward compat: mapping nama kota lama ke adm4 BMKG
     // ====================================================================
-    private function getCuacaBaruJson(string $kota, string $waktuInput): string
+    private function legacyKotaToAdm4(string $kota): string
     {
         $map = [
-            'Bandung'    => '32.73.02.1005',
+            'Bandung'    => '32.73.02.1001',
             'Jakarta'    => '31.71.01.1001',
-            'Yogyakarta' => '34.71.03.1004',
-            'Surabaya'   => '35.78.13.1002',
+            'Yogyakarta' => '34.71.03.1001',
+            'Surabaya'   => '35.78.13.1001',
         ];
-
-        $adm4 = $map[$kota] ?? null;
-        if (!$adm4) return "Lokasi Tidak Dikenal";
-
-        return $this->getCuacaByAdm4($adm4, $waktuInput);
+        return $map[$kota] ?? '32.73.02.1001';
     }
 
     // ====================================================================
@@ -287,9 +327,9 @@ class AgendaOutdoorController extends Controller
     // ====================================================================
     private function findClosestWeather(array $kelompokCuaca, string $waktuInput): string
     {
-        $cuacaTerpilih  = "Tidak Ada Data";
+        $cuacaTerpilih   = 'Tidak Ada Data';
         $selisihTerkecil = PHP_INT_MAX;
-        $carbonInput    = Carbon::parse($waktuInput, 'Asia/Jakarta');
+        $carbonInput     = Carbon::parse($waktuInput, 'Asia/Jakarta');
 
         foreach ($kelompokCuaca as $hari) {
             foreach ($hari as $item) {
@@ -309,13 +349,13 @@ class AgendaOutdoorController extends Controller
     }
 
     // ====================================================================
-    // PRIVATE – Cuaca saat ini (untuk widget di header)
+    // PRIVATE – Cuaca saat ini (widget header)
     // ====================================================================
     private function getCuacaSaatIni(string $kodeWilayah): ?array
     {
         try {
             $url      = "https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4={$kodeWilayah}";
-            $response = Http::withOptions(['verify' => false])->timeout(10)->get($url);
+            $response = Http::withOptions(['verify' => false])->timeout(8)->get($url);
             $data     = $response->json();
 
             if (!isset($data['data'][0]['cuaca'])) return null;
@@ -327,7 +367,9 @@ class AgendaOutdoorController extends Controller
             foreach ($data['data'][0]['cuaca'] as $hari) {
                 foreach ($hari as $item) {
                     if (isset($item['local_datetime'])) {
-                        $diff = abs($now->diffInMinutes(Carbon::parse($item['local_datetime'], 'Asia/Jakarta')));
+                        $diff = abs($now->diffInMinutes(
+                            Carbon::parse($item['local_datetime'], 'Asia/Jakarta')
+                        ));
                         if ($diff < $minDiff) {
                             $minDiff = $diff;
                             $closest = $item;
