@@ -12,19 +12,36 @@
 
     <style>
         :root {
-            --primary-blue: #1A237E;
-            --bg-light: #f4f7fe;
+            --primary:       #1A237E;
+            --primary-mid:   #283593;
+            --primary-light: #E8EAF6;
+            --accent:        #F57F17;
+            --accent-light:  #FFF3E0;
+            --teal:          #00897B;
+            --teal-light:    #E0F2F1;
+            --danger:        #C62828;
+            --bg:            #f4f7fe;
+            --surface:       #ffffff;
+            --text-main:     #1a1a2e;
+            --text-muted:    #6c757d;
+            --border:        #e8eaf0;
+            --shadow-sm:     0 2px 8px rgba(26,35,126,0.06);
+            --shadow-md:     0 6px 24px rgba(26,35,126,0.10);
+            --shadow-lg:     0 12px 40px rgba(26,35,126,0.14);
+            --radius:        16px;
+            --radius-sm:     10px;
         }
 
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-light);
+            background-color: var(--bg);
+            color: var(--text-main);
         }
 
         /* ======= HERO BANNER ======= */
         .hero-banner {
-            background: linear-gradient(135deg, #1a237e 0%, #1565c0 40%, #0288d1 100%);
-            border-radius: 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-mid) 60%, #3949AB 100%);
+            border-radius: var(--radius);
             padding: 2rem 2.5rem;
             color: white;
             position: relative;
@@ -138,13 +155,57 @@
             font-weight: 700;
         }
 
+        /* ======= INTERACTIVE CLOCK ======= */
+        .interactive-clock {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: var(--radius);
+            padding: 1.5rem 2.5rem;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease, background 0.4s ease;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .interactive-clock:hover {
+            transform: scale(1.05) translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+            background: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .clock-time {
+            font-family: 'Courier New', monospace;
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1;
+            letter-spacing: 3px;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            margin-bottom: 0.5rem;
+        }
+
+        .clock-date-info {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
         /* ======= CARDS ======= */
         .card {
-            border: 1px solid #e0e0e0;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
             height: 100%;
-            background: white;
+            background: var(--surface);
         }
 
         .card-title {
@@ -220,13 +281,15 @@
                 <div class="col-md-5">
                     <p class="hero-greeting">Selamat datang kembali 👋</p>
                     <h2 class="hero-name">{{ Auth::user()->name }}</h2>
-                    <p class="hero-date mb-0">
-                        <i class="bi bi-calendar3 me-1"></i>
-                        {{ \Carbon\Carbon::now('Asia/Jakarta')->translatedFormat('l, d F Y') }}
-                        &nbsp;|&nbsp;
-                        <i class="bi bi-clock me-1"></i>
-                        {{ \Carbon\Carbon::now('Asia/Jakarta')->format('H:i') }} WIB
-                    </p>
+                    
+                    <div class="interactive-clock" id="dashboard-clock">
+                        <div class="clock-time" id="clock-time-display">{{ \Carbon\Carbon::now('Asia/Jakarta')->format('H:i:s') }}</div>
+                        <div class="clock-date-info">
+                            <i class="bi bi-calendar3 me-1"></i>
+                            {{ \Carbon\Carbon::now('Asia/Jakarta')->translatedFormat('l, d F Y') }}
+                            &nbsp;|&nbsp; WIB
+                        </div>
+                    </div>
 
                     @if($currentWeather)
                     @php
@@ -512,6 +575,23 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const timeString = `${hours}:${minutes}:${seconds}`;
+            
+            const clockDisplay = document.getElementById('clock-time-display');
+            if(clockDisplay) {
+                clockDisplay.textContent = timeString;
+            }
+        }
+        
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
 </body>
 
 </html>
