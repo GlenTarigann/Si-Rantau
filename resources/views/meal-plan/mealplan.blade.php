@@ -9,47 +9,110 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary:       #1A237E;
+            --primary-mid:   #283593;
+            --primary-light: #E8EAF6;
+            --accent:        #F57F17;
+            --accent-light:  #FFF3E0;
+            --teal:          #00897B;
+            --teal-light:    #E0F2F1;
+            --danger:        #C62828;
+            --bg:            #f4f7fe;
+            --surface:       #ffffff;
+            --text-main:     #1a1a2e;
+            --text-muted:    #6c757d;
+            --border:        #e8eaf0;
+            --shadow-sm:     0 2px 8px rgba(26,35,126,0.06);
+            --shadow-md:     0 6px 24px rgba(26,35,126,0.10);
+            --shadow-lg:     0 12px 40px rgba(26,35,126,0.14);
+            --radius:        16px;
+            --radius-sm:     10px;
+        }
+
         body {
+            background-color: var(--bg);
             font-family: 'Poppins', sans-serif;
-            background-color: #F8F9FE;
-            color: #333;
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .page-hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-mid) 60%, #3949AB 100%);
+            padding: 2rem 0 3.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .page-hero::before {
+            content: '';
+            position: absolute;
+            top: -40px; right: -40px;
+            width: 220px; height: 220px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+        }
+        .page-hero::after {
+            content: '';
+            position: absolute;
+            bottom: -60px; left: 10%;
+            width: 300px; height: 300px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+        }
+        .page-hero .hero-title {
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+            margin-bottom: 0.2rem;
+        }
+        .page-hero .hero-subtitle {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.88rem;
+            font-weight: 400;
         }
 
         .card-main {
-            border: none;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
-            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            background: var(--surface);
             padding: 30px;
         }
 
         .table thead th {
             border: none;
-            color: #8898aa;
+            color: var(--text-muted);
             font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 1px;
             padding: 15px;
+            border-bottom: 2px solid var(--border);
         }
 
         .table tbody td {
-            border-top: 1px solid #f6f9fc;
+            border-top: 1px solid var(--border);
             padding: 15px;
             font-size: 0.9rem;
         }
 
         .btn-tambah {
-            background-color: #1A237E;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-mid) 100%);
             border: none;
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
             padding: 10px 20px;
-            font-weight: 500;
-            transition: 0.3s;
+            font-weight: 600;
+            transition: transform .2s, box-shadow .2s;
+            color: white;
+            box-shadow: 0 4px 14px rgba(26,35,126,0.3);
         }
 
         .btn-tambah:hover {
-            background-color: #1A237E;
             transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(26,35,126,0.35);
+            color: white;
         }
 
         .btn-lihat-resep {
@@ -70,27 +133,37 @@
         }
 
         .btn-itinerary {
-            background-color: #6c757d;
+            background: linear-gradient(135deg, var(--accent) 0%, #E65100 100%);
             border: none;
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
             color: white;
             text-decoration: none;
+            font-weight: 600;
+            box-shadow: 0 3px 10px rgba(245,127,23,0.3);
+            transition: transform .2s, box-shadow .2s;
+        }
+        
+        .btn-itinerary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(245,127,23,0.4);
+            color: white;
         }
 
         .recipe-card {
-            border: none;
-            border-radius: 15px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             transition: 0.3s;
-            background: white;
+            background: var(--surface);
+            box-shadow: var(--shadow-sm);
         }
 
         .recipe-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            box-shadow: var(--shadow-md);
         }
 
         .btn-pilih-menu {
-            background-color: #323a90;
+            background-color: var(--primary);
             color: #f6f9fc;
             border: none;
             font-size: 0.75rem;
@@ -98,16 +171,24 @@
         }
 
         .modal-content {
-            border-radius: 20px;
+            border-radius: var(--radius);
             border: none;
             padding: 10px;
         }
 
         .form-control,
         .form-select {
-            border-radius: 10px;
-            border: 1px solid #e0e0e0;
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--border);
             padding: 12px;
+            background-color: #fafbff;
+            transition: border-color .2s, box-shadow .2s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26,35,126,0.10);
+            background: #fff;
         }
 
         footer {
@@ -118,15 +199,30 @@
             margin-top: auto;
         }
     </style>
-    </style>
 </head>
 
 <body>
 
     @include('layouts.navbar')
 
-    <div class="container my-5">
-        <h4 class="fw-bold mb-4 ms-2">Meal Plan</h4>
+    {{-- ===== HERO HEADER ===== --}}
+    <div class="page-hero">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div class="fade-up">
+                    <p class="hero-subtitle mb-1">
+                        <i class="bi bi-compass me-1"></i> Personal Assistant Mahasiswa Rantau
+                    </p>
+                    <h1 class="hero-title mb-1">
+                        <i class="bi bi-egg-fried me-2"></i>Meal Plan
+                    </h1>
+                    <p class="hero-subtitle">Rencanakan menu harian dan cek resep dengan mudah</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container my-5" style="margin-top: -2rem !important; position: relative; z-index: 10;">
 
         @if(session('success'))
         <div id="success-alert" class="alert alert-success border-0 shadow-sm rounded-3 mb-4">

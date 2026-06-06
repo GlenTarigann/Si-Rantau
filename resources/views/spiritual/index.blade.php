@@ -10,20 +10,75 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-blue: #1A237E;
-            --bg-light: #f4f7fe;
+            --primary:       #1A237E;
+            --primary-mid:   #283593;
+            --primary-light: #E8EAF6;
+            --accent:        #F57F17;
+            --accent-light:  #FFF3E0;
+            --teal:          #00897B;
+            --teal-light:    #E0F2F1;
+            --danger:        #C62828;
+            --bg:            #f4f7fe;
+            --surface:       #ffffff;
+            --text-main:     #1a1a2e;
+            --text-muted:    #6c757d;
+            --border:        #e8eaf0;
+            --shadow-sm:     0 2px 8px rgba(26,35,126,0.06);
+            --shadow-md:     0 6px 24px rgba(26,35,126,0.10);
+            --shadow-lg:     0 12px 40px rgba(26,35,126,0.14);
+            --radius:        16px;
+            --radius-sm:     10px;
         }
 
         body {
+            background-color: var(--bg);
             font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-light);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .page-hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-mid) 60%, #3949AB 100%);
+            padding: 2rem 0 3.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .page-hero::before {
+            content: '';
+            position: absolute;
+            top: -40px; right: -40px;
+            width: 220px; height: 220px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+        }
+        .page-hero::after {
+            content: '';
+            position: absolute;
+            bottom: -60px; left: 10%;
+            width: 300px; height: 300px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+        }
+        .page-hero .hero-title {
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+            margin-bottom: 0.2rem;
+        }
+        .page-hero .hero-subtitle {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.88rem;
+            font-weight: 400;
         }
 
         .card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            background: var(--surface);
         }
 
         .table-scroll::-webkit-scrollbar {
@@ -58,7 +113,24 @@
 <body>
     @include('layouts.navbar')
 
-    <div class="container pb-5 mt-4">
+    {{-- ===== HERO HEADER ===== --}}
+    <div class="page-hero">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div class="fade-up">
+                    <p class="hero-subtitle mb-1">
+                        <i class="bi bi-compass me-1"></i> Personal Assistant Mahasiswa Rantau
+                    </p>
+                    <h1 class="hero-title mb-1">
+                        <i class="bi bi-heart-pulse me-2"></i>Spiritual Tracker
+                    </h1>
+                    <p class="hero-subtitle">Jaga keseimbangan duniamu dengan ibadah</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container pb-5" style="margin-top: -2rem !important; position: relative; z-index: 10;">
         @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
             <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
@@ -87,16 +159,12 @@
 
         <div class="container py-4">
             <div class="row align-items-center mb-4">
-                <div class="col-6">
-                    <h4 class="fw-bold mb-1" style="color: var(--primary-blue);">Spiritual Tracker</h4>
-                    <p class="text-muted mb-0 small">Jaga keseimbangan duniamu dengan ibadah.</p>
-                </div>
-                <div class="col-6 text-end">
-                    <a href="{{ route('spiritual.cetak') }}" target="_blank" class="btn btn-danger btn-sm me-1">
+                <div class="col-12 text-end">
+                    <a href="{{ route('spiritual.cetak') }}" target="_blank" class="btn btn-danger btn-sm me-1" style="border-radius: var(--radius-sm); font-weight: 600;">
                         <i class="bi bi-file-earmark-pdf"></i> Export PDF
                     </a>
                     <button class="btn btn-sm text-white"
-                        style="background-color: #1a237e; border-color: #1a237e;" data-bs-toggle="modal" data-bs-target="#modalTambah">
+                        style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-mid) 100%); border: none; border-radius: var(--radius-sm); font-weight: 600; box-shadow: 0 4px 14px rgba(26,35,126,0.3);" data-bs-toggle="modal" data-bs-target="#modalTambah">
                         <i class="bi bi-plus-lg"></i> Catat Target
                     </button>
                 </div>

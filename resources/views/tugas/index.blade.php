@@ -11,9 +11,69 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
+        :root {
+            --primary:       #1A237E;
+            --primary-mid:   #283593;
+            --primary-light: #E8EAF6;
+            --accent:        #F57F17;
+            --accent-light:  #FFF3E0;
+            --teal:          #00897B;
+            --teal-light:    #E0F2F1;
+            --danger:        #C62828;
+            --bg:            #f4f7fe;
+            --surface:       #ffffff;
+            --text-main:     #1a1a2e;
+            --text-muted:    #6c757d;
+            --border:        #e8eaf0;
+            --shadow-sm:     0 2px 8px rgba(26,35,126,0.06);
+            --shadow-md:     0 6px 24px rgba(26,35,126,0.10);
+            --shadow-lg:     0 12px 40px rgba(26,35,126,0.14);
+            --radius:        16px;
+            --radius-sm:     10px;
+        }
+
         body {
-            background-color: #f4f7fe;
+            background-color: var(--bg);
             font-family: 'Poppins', sans-serif;
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .page-hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-mid) 60%, #3949AB 100%);
+            padding: 2rem 0 3.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .page-hero::before {
+            content: '';
+            position: absolute;
+            top: -40px; right: -40px;
+            width: 220px; height: 220px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+        }
+        .page-hero::after {
+            content: '';
+            position: absolute;
+            bottom: -60px; left: 10%;
+            width: 300px; height: 300px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+        }
+        .page-hero .hero-title {
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+            margin-bottom: 0.2rem;
+        }
+        .page-hero .hero-subtitle {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.88rem;
+            font-weight: 400;
         }
 
         .alert-holiday {
@@ -24,44 +84,85 @@
             font-weight: 500;
         }
 
-        .card {
-            border: 1px solid #e0e0e0;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+        .section-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
         }
+
+        .section-card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .75rem;
+        }
+
+        .section-card-header h5 {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .section-card-body { padding: 1.5rem; }
 
         .form-label {
             font-weight: 600;
             font-size: 0.8rem;
-            margin-bottom: 0.4rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            margin-bottom: .4rem;
         }
 
         .form-control,
         .form-select {
-            border-radius: 8px;
-            border: 1px solid #d1d5db;
-            padding: 0.5rem 0.8rem;
-            font-size: 0.85rem;
+            border-radius: var(--radius-sm);
+            padding: 0.65rem 1rem;
+            border: 1.5px solid var(--border);
+            background-color: #fafbff;
+            font-size: 0.88rem;
+            transition: border-color .2s, box-shadow .2s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26,35,126,0.10);
+            background: #fff;
         }
 
         .table-container {
-            border: 1px solid #dee2e6;
-            border-radius: 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             overflow: hidden;
-            background: white;
+            background: var(--surface);
+            box-shadow: var(--shadow-sm);
         }
 
         .table thead th {
-            font-size: 0.7rem;
+            background: #f8f9ff;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 600;
             text-transform: uppercase;
-            color: #64748b;
-            letter-spacing: 0.05em;
-            padding: 12px;
-            border-bottom: 1px solid #dee2e6;
+            letter-spacing: .5px;
+            border-bottom: 2px solid var(--border);
+            padding: 0.85rem 1rem;
+            white-space: nowrap;
         }
 
         .table tbody td {
-            border-bottom: 1px solid #f0f0f0;
+            vertical-align: middle;
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid var(--border);
         }
 
         .table-danger {
@@ -69,23 +170,46 @@
         }
 
         .btn-primary {
-            background-color: #1e3a8a;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-mid) 100%);
+            color: white;
             border: none;
-            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 14px rgba(26,35,126,0.3);
+            transition: transform .2s, box-shadow .2s;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(26,35,126,0.35);
+            color: white;
         }
 
         .btn-dark {
-            background-color: #1f2937;
+            background: linear-gradient(135deg, var(--accent) 0%, #E65100 100%);
+            color: white;
             border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 3px 10px rgba(245,127,23,0.3);
+            transition: transform .2s, box-shadow .2s;
+        }
+        .btn-dark:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(245,127,23,0.4);
+            color: white;
         }
 
         .modal-content {
-            border-radius: 12px;
+            border-radius: var(--radius);
             border: none;
         }
 
         .modal-header {
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid var(--border);
         }
     </style>
 </head>
@@ -93,26 +217,46 @@
 <body>
 
     @include('layouts.navbar')
-    <div class="container-fluid px-5 py-4">
-        <div class="alert alert-holiday d-flex align-items-center mb-4 shadow-sm p-3">
-            <i class="bi bi-calendar-event me-3 fs-4"></i>
-            <div>
-                @if(isset($libur) && $libur)
-                Hari libur:
-                <strong>{{ $libur['holiday_name'] }}</strong> —
-                @else
-                Hari ini:
-                @endif
 
-                <strong>{{ $today->translatedFormat('d F Y') }}</strong>
-                pukul <strong>{{ $today->format('H:i') }} WIB</strong>
+    {{-- ===== HERO HEADER ===== --}}
+    <div class="page-hero">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div class="fade-up">
+                    <p class="hero-subtitle mb-1">
+                        <i class="bi bi-compass me-1"></i> Personal Assistant Mahasiswa Rantau
+                    </p>
+                    <h1 class="hero-title mb-1">
+                        <i class="bi bi-list-task me-2"></i>Manajemen Tugas
+                    </h1>
+                    <p class="hero-subtitle">Kelola tugas kuliah dan organisasimu dengan mudah</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid px-5" style="margin-top: -2rem; position: relative; z-index: 10;">
+        @php
+            $closestTask = isset($tasks) ? collect($tasks)->where('progres_status', '!=', 'Selesai')->sortBy('deadline')->first() : null;
+        @endphp
+
+        <div class="alert alert-holiday d-flex align-items-center mb-4 shadow-sm p-3">
+            <i class="bi bi-exclamation-circle me-3 fs-4 text-danger"></i>
+            <div>
+                @if($closestTask)
+                Pengingat Tugas Terdekat:
+                <strong>{{ $closestTask->task_name }}</strong> —
+                Batas Waktu:
+                <strong>{{ \Carbon\Carbon::parse($closestTask->deadline)->translatedFormat('d F Y') }}</strong>
+                pukul <strong>{{ \Carbon\Carbon::parse($closestTask->deadline)->format('H:i') }} WIB</strong>
+                @else
+                Tidak ada tugas yang belum selesai. Tetap produktif!
+                @endif
             </div>
         </div>
 
-
-
-        <div class="card mb-4 shadow-sm">
-            <div class="card-body p-4">
+        <div class="section-card mb-4">
+            <div class="section-card-header">
                 <h6 class="fw-bold mb-4">Form Input Tugas</h6>
                 <form action="{{ route('tugas.store') }}" method="POST">
                     @csrf
@@ -157,9 +301,12 @@
             </div>
         </div>
 
-        <div class="table-container shadow-sm">
-            <div class="px-4 py-3 border-bottom bg-white">
-                <h6 class="fw-bold mb-0">Daftar Tugas</h6>
+        <div class="table-container shadow-sm mb-5">
+            <div class="section-card-header bg-white">
+                <h5 class="mb-0">
+                    <span class="header-icon"><i class="bi bi-list-check" style="background: var(--primary-light); color: var(--primary); padding: 5px; border-radius: 5px;"></i></span>
+                    Daftar Tugas
+                </h5>
             </div>
             <div class="table-responsive">
                 <table class="table align-middle mb-0">
