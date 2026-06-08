@@ -238,7 +238,7 @@
     <div class="container-fluid px-5" style="margin-top: -2rem; position: relative; z-index: 10;">
 
         @php
-            $sisa = $closestTask ? \Carbon\Carbon::parse($closestTask->deadline)->diffInDays(\Carbon\Carbon::now('Asia/Jakarta')) : null;
+            $sisa = $closestTask ? (int) ceil(\Carbon\Carbon::now('Asia/Jakarta')->floatDiffInDays(\Carbon\Carbon::parse($closestTask->deadline))) : null;
             $isUrgent = $sisa !== null && $sisa <= 2;
         @endphp
 
@@ -247,7 +247,7 @@
             <div>
                 @if($closestTask)
                     @if($isUrgent)
-                        <strong class="text-danger">⚠️ Deadline Mendekat!</strong>
+                        <strong class="text-danger">Deadline Mendekat!</strong>
                     @else
                         <strong>🔔 Pengingat Tugas Terdekat:</strong>
                     @endif
