@@ -20,6 +20,14 @@ class TugasController extends Controller
 
         $today = Carbon::now('Asia/Jakarta');
 
+        // Pengingat: tugas yang belum selesai & deadlinenya belum lewat
+        // Jika deadline sudah lewat, dianggap selesai dan tidak diikutkan
+        $closestTask = Tugas::where('user_id', Auth::id())
+                    ->where('progres_status', '!=', 'Selesai')
+                    ->where('deadline', '>=', $today->toDateTimeString())
+                    ->orderBy('deadline', 'asc')
+                    ->first();
+
         try {
             $response = Http::timeout(3)->get("https://api-harilibur.vercel.app/api?year=" . $today->year);
             $libur = collect($response->json())->firstWhere('holiday_date', $today->format('Y-m-d'));
@@ -27,7 +35,7 @@ class TugasController extends Controller
             $libur = null;
         }
 
-        return view('tugas.index', compact('tasks', 'today', 'libur'));
+        return view('tugas.index', compact('tasks', 'today', 'libur', 'closestTask'));
     }
 
 

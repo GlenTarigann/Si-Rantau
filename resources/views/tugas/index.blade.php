@@ -236,21 +236,30 @@
     </div>
 
     <div class="container-fluid px-5" style="margin-top: -2rem; position: relative; z-index: 10;">
+
         @php
-            $closestTask = isset($tasks) ? collect($tasks)->where('progres_status', '!=', 'Selesai')->sortBy('deadline')->first() : null;
+            $sisa = $closestTask ? \Carbon\Carbon::parse($closestTask->deadline)->diffInDays(\Carbon\Carbon::now('Asia/Jakarta')) : null;
+            $isUrgent = $sisa !== null && $sisa <= 2;
         @endphp
 
-        <div class="alert alert-holiday d-flex align-items-center mb-4 shadow-sm p-3">
-            <i class="bi bi-exclamation-circle me-3 fs-4 text-danger"></i>
+        <div class="alert alert-holiday d-flex align-items-center mb-4 shadow-sm p-3 {{ $isUrgent ? 'border-danger border-2' : '' }}" style="{{ $isUrgent ? 'background-color: #fee2e2; border-color: #ef4444 !important;' : '' }}">
+            <i class="bi {{ $closestTask ? ($isUrgent ? 'bi-alarm-fill text-danger' : 'bi-bell-fill text-warning') : 'bi-check-circle-fill text-success' }} me-3 fs-4"></i>
             <div>
                 @if($closestTask)
-                Pengingat Tugas Terdekat:
-                <strong>{{ $closestTask->task_name }}</strong> —
-                Batas Waktu:
-                <strong>{{ \Carbon\Carbon::parse($closestTask->deadline)->translatedFormat('d F Y') }}</strong>
-                pukul <strong>{{ \Carbon\Carbon::parse($closestTask->deadline)->format('H:i') }} WIB</strong>
+                    @if($isUrgent)
+                        <strong class="text-danger">⚠️ Deadline Mendekat!</strong>
+                    @else
+                        <strong>🔔 Pengingat Tugas Terdekat:</strong>
+                    @endif
+                    <strong>{{ $closestTask->task_name }}</strong> —
+                    Batas Waktu:
+                    <strong>{{ \Carbon\Carbon::parse($closestTask->deadline)->translatedFormat('d F Y') }}</strong>
+                    pukul <strong>{{ \Carbon\Carbon::parse($closestTask->deadline)->format('H:i') }} WIB</strong>
+                    @if($isUrgent)
+                        <span class="badge bg-danger ms-2">{{ $sisa == 0 ? 'Hari ini!' : ($sisa == 1 ? 'Besok!' : $sisa . ' hari lagi') }}</span>
+                    @endif
                 @else
-                Tidak ada tugas yang belum selesai. Tetap produktif!
+                    <strong class="text-success">✅ Semua tugas aktif sudah selesai atau tidak ada deadline yang mendekat. Tetap produktif!</strong>
                 @endif
             </div>
         </div>
