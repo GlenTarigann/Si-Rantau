@@ -238,8 +238,14 @@
     <div class="container-fluid px-5" style="margin-top: -2rem; position: relative; z-index: 10;">
 
         @php
-            $sisa = $closestTask ? (int) ceil(\Carbon\Carbon::now('Asia/Jakarta')->floatDiffInDays(\Carbon\Carbon::parse($closestTask->deadline))) : null;
-            $isUrgent = $sisa !== null && $sisa <= 2;
+            $sisa = null;
+            $isUrgent = false;
+            if ($closestTask) {
+                $now = \Carbon\Carbon::now('Asia/Jakarta')->startOfDay();
+                $deadlineDate = \Carbon\Carbon::parse($closestTask->deadline, 'Asia/Jakarta')->startOfDay();
+                $sisa = (int) $now->diffInDays($deadlineDate, false);
+                $isUrgent = $sisa >= 0 && $sisa <= 2;
+            }
         @endphp
 
         <div class="alert alert-holiday d-flex align-items-center mb-4 shadow-sm p-3 {{ $isUrgent ? 'border-danger border-2' : '' }}" style="{{ $isUrgent ? 'background-color: #fee2e2; border-color: #ef4444 !important;' : '' }}">
