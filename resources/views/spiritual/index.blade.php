@@ -107,7 +107,6 @@
             margin-top: auto;
         }
     </style>
-    </style>
 </head>
 
 <body>
@@ -281,69 +280,6 @@
                                     </div>
                                 </td>
                             </tr>
-
-                            <div class="modal fade" id="modalEdit{{ $item->id }}" tabindex="-1">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content">
-                                        <div class="modal-header bg-light py-2">
-                                            <h6 class="modal-title fw-bold">Edit Target</h6>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                        </div>
-                                        <form action="{{ route('spiritual.update', $item->id) }}" method="POST">
-                                            @csrf
-                                            @method('PUT')
-                                            <div class="modal-body">
-                                                <div class="mb-3">
-                                                    <label class="form-label fw-bold small">Nama Kegiatan <span class="text-danger">*</span></label>
-                                                    <input type="text"
-                                                        name="prayer_name"
-                                                        class="form-control form-control-sm"
-                                                        value="{{ $item->prayer_name }}"
-                                                        minlength="3"
-                                                        maxlength="100"
-                                                        required>
-                                                </div>
-
-                                                <div class="row g-2 mb-3">
-                                                    <div class="col-6">
-                                                        <label class="form-label fw-bold small">Jumlah Target</label>
-                                                        <input type="number"
-                                                            name="target_count"
-                                                            class="form-control form-control-sm"
-                                                            value="{{ $item->target_count }}"
-                                                            min="1"
-                                                            max="1000">
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <label class="form-label fw-bold small">Satuan</label>
-                                                        <input type="text"
-                                                            name="target_unit"
-                                                            class="form-control form-control-sm"
-                                                            value="{{ $item->target_unit }}"
-                                                            maxlength="50">
-                                                    </div>
-                                                </div>
-
-                                                <div class="mb-3">
-                                                    <label class="form-label fw-bold small">Catatan</label>
-                                                    <textarea name="notes"
-                                                        rows="2"
-                                                        class="form-control form-control-sm"
-                                                        maxlength="500">{{ $item->notes }}</textarea>
-                                                    <small class="text-muted">Maksimal 500 karakter</small>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer py-2">
-                                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-                                                <button type="submit" class="btn btn-sm text-white"
-                                                    style="background-color: #1a237e !important; border: none;">
-                                                    <i class="bi bi-check-lg me-1"></i> Simpan
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
                             @empty
                             <tr>
                                 <td colspan="6" class="text-center py-4 text-muted small">
@@ -357,6 +293,72 @@
             </div>
         </div>
     </div>
+
+    {{-- ===== MODAL EDIT (diletakkan di luar tabel agar tidak merusak struktur HTML) ===== --}}
+    @foreach($dataIbadah ?? [] as $item)
+    <div class="modal fade" id="modalEdit{{ $item->id }}" tabindex="-1" aria-labelledby="modalEditLabel{{ $item->id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-light py-2">
+                    <h6 class="modal-title fw-bold" id="modalEditLabel{{ $item->id }}">Edit Target</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <form action="{{ route('spiritual.update', $item->id) }}" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Nama Kegiatan <span class="text-danger">*</span></label>
+                            <input type="text"
+                                name="prayer_name"
+                                class="form-control form-control-sm"
+                                value="{{ $item->prayer_name }}"
+                                minlength="3"
+                                maxlength="100"
+                                required>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-bold small">Jumlah Target</label>
+                                <input type="number"
+                                    name="target_count"
+                                    class="form-control form-control-sm"
+                                    value="{{ $item->target_count }}"
+                                    min="1"
+                                    max="1000">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold small">Satuan</label>
+                                <input type="text"
+                                    name="target_unit"
+                                    class="form-control form-control-sm"
+                                    value="{{ $item->target_unit }}"
+                                    maxlength="50">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Catatan</label>
+                            <textarea name="notes"
+                                rows="2"
+                                class="form-control form-control-sm"
+                                maxlength="500">{{ $item->notes }}</textarea>
+                            <small class="text-muted">Maksimal 500 karakter</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer py-2">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-sm text-white"
+                            style="background-color: #1a237e !important; border: none;">
+                            <i class="bi bi-check-lg me-1"></i> Simpan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endforeach
 
     <!-- Tambah -->
     <div class="modal fade" id="modalTambah" tabindex="-1">

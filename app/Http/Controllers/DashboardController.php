@@ -30,7 +30,7 @@ class DashboardController extends Controller
         try {
             $agendas = AgendaOutdoor::where('user_id', $userId)
                 ->where('waktu_mulai', '>=', now())
-                ->orderBy('waktu_mulai', 'asc')->take(2)->get();
+                ->orderBy('waktu_mulai', 'asc')->take(5)->get();
         } catch (\Exception $e) {
         }
 
@@ -76,10 +76,25 @@ class DashboardController extends Controller
             return null;
         });
 
+        // Tampilkan 5 target ibadah terbaru (hari ini + mendatang),
+        // jika tidak ada hari ini, tampilkan dari semua yang ada
         $AktivitasIbadah = Ibadah::where('user_id', $userId)
-            ->whereDate('date', $today)
+            ->where('date', '>=', $today)
+            ->orderBy('date', 'asc')
             ->orderBy('time', 'asc')
+            ->take(5)
             ->get();
+
+        // Jika kurang dari 5, tambah dari data lampau
+        if ($AktivitasIbadah->count() < 5) {
+            $extra = Ibadah::where('user_id', $userId)
+                ->where('date', '<', $today)
+                ->orderBy('date', 'desc')
+                ->orderBy('time', 'asc')
+                ->take(5 - $AktivitasIbadah->count())
+                ->get();
+            $AktivitasIbadah = $AktivitasIbadah->merge($extra);
+        }
 
         return view('dashboard', compact('agendas', 'meals', 'tasks', 'dataSpiritual', 'AktivitasIbadah', 'currentWeather'));
     }
